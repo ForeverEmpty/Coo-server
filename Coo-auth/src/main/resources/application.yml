@@ -2,15 +2,9 @@ server:
   port: 8081
 
 spring:
-  application:
-    name: Coo-auth
   threads:
     virtual:
       enabled: true # 开启虚拟线程，极大提升高并发能力
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 127.0.0.1:8848
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/coo_user?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
