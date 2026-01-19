@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.foreverempty.common.Result;
+import org.foreverempty.common.context.UserContext;
 import org.foreverempty.common.utils.JwtUtils;
 import org.foreverempty.cooauth.entity.User;
 import org.foreverempty.cooauth.mapper.UserMapper;
@@ -52,5 +53,17 @@ public class AuthService {
         String token = JwtUtils.createToken(user.getId());
 
         return Result.success(token);
+    }
+
+    public Result<User> getMyInfo() {
+        Long userId = UserContext.getUserId();
+
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return Result.error("User not found");
+        }
+
+        user.setPassword(null);
+        return Result.success(user);
     }
 }

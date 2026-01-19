@@ -14,6 +14,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class AuthorizeFilter implements GlobalFilter, Ordered {
@@ -27,7 +28,15 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
+        String traceId = UUID.randomUUID().toString().replace("-", "");
+
+        ServerHttpRequest request = exchange.getRequest()
+                .mutate()
+                .header("traceId", traceId)
+                .build();
+
+        org.slf4j.MDC.put("traceId", traceId);
+
         String path = request.getURI().getPath();
 
         for (String whitePath : WHITE_LIST) {
@@ -36,7 +45,14 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
             }
         }
 
-        String token = request.getHeaders().getFirst("Authorization");
+        String authHeader = request.getHeaders().getFirst("Authorization");
+
+        String token = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else {
+            token = authHeader;
+        }
 
         Long userId = JwtUtils.getUserId(token);
         if (userId == null) {

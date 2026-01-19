@@ -18,6 +18,7 @@
         <module>Coo-common</module>
         <module>Coo-auth</module>
         <module>Coo-gateway</module>
+        <module>Coo-file</module>
     </modules>
 
     <properties>

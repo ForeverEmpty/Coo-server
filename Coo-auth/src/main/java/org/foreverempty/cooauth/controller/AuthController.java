@@ -1,12 +1,10 @@
 package org.foreverempty.cooauth.controller;
 
 import org.foreverempty.common.Result;
+import org.foreverempty.cooauth.entity.User;
 import org.foreverempty.cooauth.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -31,5 +29,10 @@ public class AuthController {
     @PostMapping("/login")
     public Result<String> login(@RequestBody Map<String, String> params) {
         return authService.login(params.get("username"), params.get("password"));
+    }
+
+    @GetMapping("/me")
+    public Result<User> me() {
+        return authService.getMyInfo();
     }
 }

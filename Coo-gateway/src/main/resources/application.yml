@@ -17,3 +17,9 @@ spring:
                 - Path=/auth/** # 凡是 /auth/ 开头的请求都发给 chat-auth
               filters:
                 - StripPrefix=1 # 转发时去掉第一个路径(auth)，比如 /auth/api/hello 变 /api/hello
+            - id: file_route
+              uri: lb://Coo-file
+              predicates:
+                - Path=/file/**
+              filters:
+                - StripPrefix=1
