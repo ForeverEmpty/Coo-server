@@ -11,6 +11,10 @@
       <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/annotation/PrivacyField.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/config/JacksonConfig.java" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/utils/PrivacyUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/spring.application.name_IS_UNDEFINED/error-2026-01-19.0.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/spring.application.name_IS_UNDEFINED/info-2026-01-19.0.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/spring.application.name_IS_UNDEFINED/info-2026-01-20.0.log" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/logs/spring.application.name_IS_UNDEFINED/info-2026-01-21.0.log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/controller/AuthController.java" afterDir="false" />
@@ -167,7 +171,7 @@
       <workItem from="1768814497207" duration="233000" />
       <workItem from="1768893826577" duration="2603000" />
       <workItem from="1768956047239" duration="7063000" />
-      <workItem from="1769042833657" duration="10369000" />
+      <workItem from="1769042833657" duration="10963000" />
     </task>
     <servers />
   </component>
