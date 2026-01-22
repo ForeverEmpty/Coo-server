@@ -20,8 +20,8 @@ import java.util.UUID;
 public class AuthorizeFilter implements GlobalFilter, Ordered {
 
     private static final List<String> WHITE_LIST = List.of(
-            "/auth/api/auth/login",
-            "/auth/api/auth/register"
+            "/api/auth/login",
+            "/api/auth/register"
     );
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();

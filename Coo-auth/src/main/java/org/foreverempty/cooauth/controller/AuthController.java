@@ -1,15 +1,15 @@
 package org.foreverempty.cooauth.controller;
 
 import org.foreverempty.common.Result;
-import org.foreverempty.cooauth.entity.User;
 import org.foreverempty.cooauth.service.AuthService;
+import org.foreverempty.cooauth.vo.UserFullVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("")
 public class AuthController {
     @Autowired
     private AuthService authService;
@@ -32,7 +32,12 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public Result<User> me() {
+    public Result<UserFullVO> me() {
         return authService.getMyInfo();
+    }
+
+    @GetMapping("/info/{id}")
+    public Result<UserFullVO> getUserInfo(@PathVariable Long id) {
+        return authService.getUserInfo(id);
     }
 }
