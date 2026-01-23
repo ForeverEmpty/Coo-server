@@ -9,7 +9,6 @@ target/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
-.idea/dataSources/
 *.iws
 *.iml
 *.ipr
@@ -39,4 +38,5 @@ build/
 ### Mac OS ###
 .DS_Store
 
-logs/
+/logs/
+/.idea/dataSources/

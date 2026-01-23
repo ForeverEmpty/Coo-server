@@ -5,7 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="36ad6f61-f9b5-43d5-b980-d5e3ddf24499" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/spring.application.name_IS_UNDEFINED/info.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/spring.application.name_IS_UNDEFINED/info.log" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -153,6 +155,7 @@
       <workItem from="1768893826577" duration="2603000" />
       <workItem from="1768956047239" duration="7063000" />
       <workItem from="1769042833657" duration="11418000" />
+      <workItem from="1769129555214" duration="371000" />
     </task>
     <servers />
   </component>
