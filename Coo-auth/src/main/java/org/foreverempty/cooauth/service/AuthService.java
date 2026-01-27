@@ -1,12 +1,15 @@
 package org.foreverempty.cooauth.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
 import org.foreverempty.common.Result;
 import org.foreverempty.common.context.UserContext;
 import org.foreverempty.common.utils.JwtUtils;
 import org.foreverempty.common.utils.PrivacyUtils;
+import org.foreverempty.common.utils.RandomNickName;
+import org.foreverempty.common.vo.UserSimpleVO;
+import org.foreverempty.cooauth.dto.PrivacyUpdateDTO;
+import org.foreverempty.cooauth.dto.UpdateProfileDTO;
 import org.foreverempty.cooauth.entity.User;
 import org.foreverempty.cooauth.entity.UserInfo;
 import org.foreverempty.cooauth.mapper.UserInfoMapper;
@@ -18,6 +21,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 public class AuthService {
     @Autowired
@@ -40,6 +48,7 @@ public class AuthService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(bCryptPasswordEncoder.encode(password));
+        user.setNickname(RandomNickName.getRandomNickName());
         user.setStatus(1);
 
         int rows = userMapper.insert(user);
@@ -103,5 +112,106 @@ public class AuthService {
         }
 
         return Result.success(vo);
+    }
+
+    public Result<String> updateAvatar(String url) {
+        Long userId = UserContext.getUserId();
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            return Result.error("User not found");
+        }
+
+        user.setAvatar(url);
+
+        int rows = userMapper.updateById(user);
+        if (rows < 0) {
+            return Result.error("Update Avatar failed");
+        }
+
+        log.info("User {} Update Avatar: {}", userId, url);
+        return Result.success("Update Avatar succeed");
+    }
+
+    public Result<String> updateBackground(String url) {
+        Long userId = UserContext.getUserId();
+        UserInfo info = userInfoMapper.selectById(userId);
+        if (info == null) {
+            return Result.error("User Info not found");
+        }
+
+        info.setBackground(url);
+
+        int rows = userInfoMapper.updateById(info);
+        if (rows < 0) {
+            return Result.error("Update Background failed");
+        }
+
+        log.info("User {} Update Background: {}", userId, url);
+        return Result.success("Update Background succeed");
+    }
+
+    @Transactional
+    public Result<String> updatePrivacy(PrivacyUpdateDTO dto) {
+        Long userId = UserContext.getUserId();
+
+        UserInfo info = new UserInfo();
+        info.setUserId(userId);
+
+        BeanUtils.copyProperties(dto, info);
+
+        int rows = userInfoMapper.updateById(info);
+
+        if (rows < 0) {
+            return Result.error("Update Privacy failed");
+        }
+
+        log.info("User {} Update Privacy: {}", userId, dto);
+        return Result.success("Update Privacy succeed");
+    }
+
+    @Transactional
+    public Result<String> updateProfile(UpdateProfileDTO dto) {
+        Long userId = UserContext.getUserId();
+
+        if (dto.getNickname() != null) {
+            User user = new User();
+            user.setId(userId);
+            user.setNickname(dto.getNickname());
+            userMapper.updateById(user);
+        }
+
+        UserInfo info = new UserInfo();
+        info.setUserId(userId);
+        BeanUtils.copyProperties(dto, info);
+
+        int rows = userInfoMapper.updateById(info);
+
+        if (rows == 0){
+            userInfoMapper.insert(info);
+        }
+
+        if (rows < 0) {
+            return Result.error("Update Profile failed");
+        }
+
+        log.info("User {} Update Profile: {}", userId, dto);
+        return Result.success("Update Profile succeed");
+    }
+
+    public Result<List<UserSimpleVO>> getUserBatch(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Result.success(Collections.emptyList());
+        }
+
+        List<User> users = userMapper.selectBatchIds(ids);
+
+        List<UserSimpleVO> vos = users.stream().map(u -> {
+            UserSimpleVO vo = new UserSimpleVO();
+            BeanUtils.copyProperties(u, vo);
+            vo.setId(u.getId().toString());
+            return vo;
+        }).collect(Collectors.toList());
+
+        return Result.success(vos);
     }
 }

@@ -21,7 +21,8 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
 
     private static final List<String> WHITE_LIST = List.of(
             "/api/auth/login",
-            "/api/auth/register"
+            "/api/auth/register",
+            "/api/chat/**"
     );
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
@@ -50,8 +51,10 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         String token = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-        } else {
-            token = authHeader;
+        }
+
+        if (token == null) {
+            token = request.getQueryParams().getFirst("token");
         }
 
         Long userId = JwtUtils.getUserId(token);

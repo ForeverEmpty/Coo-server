@@ -9,6 +9,8 @@
         <option value="$PROJECT_DIR$/Coo-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/test/pom.xml" />
         <option value="$PROJECT_DIR$/Coo-file/pom.xml" />
+        <option value="$PROJECT_DIR$/Coo-chat/pom.xml" />
+        <option value="$PROJECT_DIR$/Coo-social/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">

@@ -1,11 +1,15 @@
 package org.foreverempty.cooauth.controller;
 
 import org.foreverempty.common.Result;
+import org.foreverempty.common.vo.UserSimpleVO;
+import org.foreverempty.cooauth.dto.PrivacyUpdateDTO;
+import org.foreverempty.cooauth.dto.UpdateProfileDTO;
 import org.foreverempty.cooauth.service.AuthService;
 import org.foreverempty.cooauth.vo.UserFullVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -40,4 +44,30 @@ public class AuthController {
     public Result<UserFullVO> getUserInfo(@PathVariable Long id) {
         return authService.getUserInfo(id);
     }
+
+    @PostMapping("/avatar/update")
+    public Result<String> updateAvatar(@RequestBody Map<String, String> params) {
+        return authService.updateAvatar(params.get("avatar"));
+    }
+
+    @PostMapping("/background/update")
+    public Result<String> updateBackground(@RequestBody Map<String, String> params) {
+        return authService.updateBackground(params.get("background"));
+    }
+
+    @PostMapping("/privacy/update")
+    public Result<String> updatePrivacy(@RequestBody PrivacyUpdateDTO dto) {
+        return authService.updatePrivacy(dto);
+    }
+
+    @PostMapping("/profile/update")
+    public Result<String> updateProfile(@RequestBody UpdateProfileDTO dto) {
+        return authService.updateProfile(dto);
+    }
+
+    @PostMapping("/user/batch")
+    public Result<List<UserSimpleVO>> getUserBatch(@RequestBody List<Long> ids) {
+        return authService.getUserBatch(ids);
+    }
+
 }

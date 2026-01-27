@@ -16,16 +16,21 @@ public class UserFullVO {
 
     @PrivacyField("publicGender")
     private Integer gender;
+    private Boolean publicGender;
 
     @PrivacyField("publicBirthday")
     private LocalDate birthday;
+    private Boolean publicBirthday;
 
-    @PrivacyField("publicSignature")
     private String signature;
 
     @PrivacyField("publicRegion")
     private String region;
+    private Boolean publicRegion;
 
     @PrivacyField("publicJob")
     private String job;
+    private Boolean publicJob;
+
+    private Boolean publicMutualFriend;
 }

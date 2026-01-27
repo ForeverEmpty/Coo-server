@@ -3,6 +3,7 @@ package org.foreverempty.coofile.service;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import org.foreverempty.coofile.config.MinioConfig;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +17,7 @@ public class FileService {
     @Autowired
     private MinioConfig minioConfig;
 
-    public String uploadFile(MultipartFile file) throws Exception {
+    public String uploadFile(@NotNull MultipartFile file) throws Exception {
         String originalFilename = file.getOriginalFilename();
         String fileName = UUID.randomUUID()
                 + "."

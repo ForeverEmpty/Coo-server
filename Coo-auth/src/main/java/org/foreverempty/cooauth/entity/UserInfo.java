@@ -20,11 +20,12 @@ public class UserInfo {
     private Boolean publicBirthday;
 
     private String signature;
-    private Boolean publicSignature;
 
     private String region;
     private Boolean publicRegion;
 
     private String job;
     private Boolean publicJob;
+
+    private String background;
 }
