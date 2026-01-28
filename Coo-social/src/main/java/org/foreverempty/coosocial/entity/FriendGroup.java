@@ -8,18 +8,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("u_group_member")
-public class GroupMember {
+@TableName("u_friend_group")
+public class FriendGroup {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private Long groupId;
     private Long userId;
-    private String alias;
-    /**
-     * 1-群主, 2-管理员, 3-普通成员
-     */
-    private Integer role;
-    private Integer isMute;
-    private Long categoryId;
-    private LocalDateTime joinTime;
+    private String name;
+    private Integer sort;
+    private LocalDateTime createTime;
 }

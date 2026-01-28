@@ -1,4 +1,4 @@
-package org.foreverempty.cooauth.vo;
+package org.foreverempty.common.vo;
 
 import lombok.Data;
 import org.foreverempty.common.annotation.PrivacyField;

@@ -5,49 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="36ad6f61-f9b5-43d5-b980-d5e3ddf24499" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/dto/PrivacyUpdateDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/dto/UpdateProfileDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/dto/RecallRequestDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/entity/ChatMessage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/netty/ChatHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/netty/NettyServer.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/netty/SessionManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/repository/MessageRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/java/org/foreverempty/coochat/service/MessageService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/resources/bootstrap.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-chat/src/main/resources/logback-spring.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/constant/ContentType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/constant/MessageType.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/model/ChatData.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/model/MessageModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/utils/RandomNickName.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/vo/UserSimpleVO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/Friend.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/FriendApply.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/Group.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/GroupMember.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/feign/UserFeignClient.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/mapper/FriendApplyMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/mapper/FriendMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/mapper/GroupMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/mapper/GroupMemberMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/service/FriendService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/vo/FriendVO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/resources/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/resources/bootstrap.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/dto/FriendApplyDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/dto/FriendAuditDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/ChatGroupCategory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/FriendGroup.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/mapper/ChatGroupCategoryMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/mapper/FriendGroupMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/vo/FriendApplyVO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/vo/FriendGroupVO.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/entity/UserInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/entity/UserInfo.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/service/AuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/vo/UserFullVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/vo/UserFullVO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/utils/PrivacyUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/utils/PrivacyUtils.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Coo-file/src/main/java/org/foreverempty/coofile/service/FileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-file/src/main/java/org/foreverempty/coofile/service/FileService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-auth/src/main/java/org/foreverempty/cooauth/vo/UserFullVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-common/src/main/java/org/foreverempty/common/vo/UserFullVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-file/src/main/java/org/foreverempty/coofile/controller/FileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-file/src/main/java/org/foreverempty/coofile/controller/FileController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Coo-gateway/src/main/java/org/foreverempty/coogateway/filter/AuthorizeFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-gateway/src/main/java/org/foreverempty/coogateway/filter/AuthorizeFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Coo-gateway/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-gateway/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/controller/FriendController.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/controller/FriendController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/Friend.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/Friend.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/GroupMember.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/entity/GroupMember.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/feign/UserFeignClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/feign/UserFeignClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/service/FriendService.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/service/FriendService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/vo/FriendVO.java" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/java/org/foreverempty/coosocial/vo/FriendVO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Coo-social/src/main/resources/bootstrap.yml" beforeDir="false" afterPath="$PROJECT_DIR$/Coo-social/src/main/resources/bootstrap.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,35 +71,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Spring Boot.CooAuthApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.CooChatApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.CooFileApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.CooGatewayApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Progect/Coo/Coo-server/Coo-chat/src/main/resources&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "HTTP 请求.generated-requests中的所有.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.CooAuthApplication.executor": "Run",
+    "Spring Boot.CooChatApplication.executor": "Run",
+    "Spring Boot.CooFileApplication.executor": "Run",
+    "Spring Boot.CooGatewayApplication.executor": "Run",
+    "Spring Boot.CooSocialApplication.executor": "Run",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Progect/Coo/Coo-server/Coo-chat/src/main/resources",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "模块",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Progect\Coo\Coo-server\Coo-chat\src\main\resources" />
@@ -133,6 +114,7 @@
       <recent name="org.foreverempty.coochat.netty" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="org.foreverempty.common.vo" />
       <recent name="org.foreverempty.cooauth" />
     </key>
   </component>
@@ -147,6 +129,13 @@
     </option>
     <option name="configurationStatuses">
       <map>
+        <entry key="HttpClient.HttpRequestRunConfigurationType">
+          <value>
+            <map>
+              <entry key="generated-requests中的所有" value="STOPPED" />
+            </map>
+          </value>
+        </entry>
         <entry key="SpringBootApplicationConfigurationType">
           <value>
             <map>
@@ -154,6 +143,7 @@
               <entry key="CooChatApplication" value="STOPPED" />
               <entry key="CooFileApplication" value="STOPPED" />
               <entry key="CooGatewayApplication" value="STOPPED" />
+              <entry key="CooSocialApplication" value="STOPPED" />
             </map>
           </value>
         </entry>
@@ -161,6 +151,9 @@
     </option>
   </component>
   <component name="RunManager" selected="Spring Boot.CooChatApplication">
+    <configuration name="generated-requests中的所有" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" temporary="true" path="$APPLICATION_CONFIG_DIR$/scratches/generated-requests.http">
+      <method v="2" />
+    </configuration>
     <configuration name="CooAuthApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="Coo-auth" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="org.foreverempty.cooauth.CooAuthApplication" />
@@ -196,6 +189,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="HTTP 请求.generated-requests中的所有" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -231,7 +229,9 @@
       <workItem from="1769412887377" duration="8397000" />
       <workItem from="1769421735695" duration="214000" />
       <workItem from="1769474521803" duration="17602000" />
-      <workItem from="1769505808650" duration="1233000" />
+      <workItem from="1769505808650" duration="2599000" />
+      <workItem from="1769560862388" duration="4262000" />
+      <workItem from="1769566170208" duration="16567000" />
     </task>
     <servers />
   </component>

@@ -51,6 +51,8 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         String token = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
+        } else {
+            token = authHeader;
         }
 
         if (token == null) {

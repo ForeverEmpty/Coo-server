@@ -1,5 +1,6 @@
 package org.foreverempty.cooauth.service;
 
+import com.alibaba.cloud.commons.lang.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.foreverempty.common.Result;
@@ -14,7 +15,7 @@ import org.foreverempty.cooauth.entity.User;
 import org.foreverempty.cooauth.entity.UserInfo;
 import org.foreverempty.cooauth.mapper.UserInfoMapper;
 import org.foreverempty.cooauth.mapper.UserMapper;
-import org.foreverempty.cooauth.vo.UserFullVO;
+import org.foreverempty.common.vo.UserFullVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -211,6 +212,29 @@ public class AuthService {
             vo.setId(u.getId().toString());
             return vo;
         }).collect(Collectors.toList());
+
+        return Result.success(vos);
+    }
+
+    public Result<List<UserSimpleVO>> searchUser(String keyword) {
+        if (StringUtils.isBlank(keyword)) {
+            return Result.success(Collections.emptyList());
+        }
+
+        List<User> users = userMapper.selectList(
+                new LambdaQueryWrapper<User>()
+                        .like(User::getUsername, keyword)
+                        .or()
+                        .like(User::getNickname, keyword)
+                        .last("limit 20")
+        );
+
+        List<UserSimpleVO> vos = users.stream().map(u -> new UserSimpleVO(
+                        u.getId().toString(),
+                        u.getUsername(),
+                        u.getNickname(),
+                        u.getAvatar()
+        )).toList();
 
         return Result.success(vos);
     }

@@ -5,18 +5,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
 @Data
-@TableName("u_friend")
-public class Friend {
+@TableName("u_chat_group_category")
+public class ChatGroupCategory {
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long userId;
-    private Long friendId;
-    private String remark;
-    private String source;
-    private Integer status;
-    private Long groupId;
-    private LocalDateTime createTime;
+    private String name;
+    private Integer sort;
 }

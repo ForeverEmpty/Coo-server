@@ -5,7 +5,7 @@ import org.foreverempty.common.vo.UserSimpleVO;
 import org.foreverempty.cooauth.dto.PrivacyUpdateDTO;
 import org.foreverempty.cooauth.dto.UpdateProfileDTO;
 import org.foreverempty.cooauth.service.AuthService;
-import org.foreverempty.cooauth.vo.UserFullVO;
+import org.foreverempty.common.vo.UserFullVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -70,4 +70,8 @@ public class AuthController {
         return authService.getUserBatch(ids);
     }
 
+    @GetMapping("/user/search")
+    public Result<List<UserSimpleVO>> searchUser(@RequestParam String keyword) {
+        return authService.searchUser(keyword);
+    }
 }
