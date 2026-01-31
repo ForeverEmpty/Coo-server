@@ -2,6 +2,7 @@ package org.foreverempty.coosocial.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
+import org.foreverempty.common.PageResult;
 import org.foreverempty.common.Result;
 import org.foreverempty.common.context.UserContext;
 import org.foreverempty.common.vo.UserSimpleVO;
@@ -89,9 +90,13 @@ public class FriendService {
         return userFeignClient.searchUser(keyword);
     }
 
+    public Result<PageResult<UserSimpleVO>> searchAllFriend(String keyword, int pageNum, int pageSize) {
+        return userFeignClient.searchAllUsers(keyword, pageNum, pageSize);
+    }
+
     public Result<String> sendApply(FriendApplyDTO dto) {
         Long currentUserId = UserContext.getUserId();
-        Long targetId = Long.parseLong(dto.getTargetId());
+        Long targetId = dto.getTargetId();
 
         if (currentUserId.equals(targetId)) {
             return Result.error("Do not apply to yourself");
@@ -149,7 +154,7 @@ public class FriendService {
         Result<List<UserSimpleVO>> rpcResult = userFeignClient.getUserBatch(fromIds);
 
         Map<String, UserSimpleVO> userMap = rpcResult.getData().stream()
-                .collect(Collectors.toMap(UserSimpleVO::getId, v -> v));
+                .collect(Collectors.toMap(v -> v.getId().toString(), v -> v));
 
         List<FriendApplyVO> vos = dbApplies.stream().map(apply -> {
             FriendApplyVO vo = new FriendApplyVO();
@@ -238,13 +243,13 @@ public class FriendService {
         }
 
         Map<String, UserSimpleVO> userMap = userInfos.stream()
-                .collect(Collectors.toMap(UserSimpleVO::getId, v -> v));
+                .collect(Collectors.toMap(v -> v.getId().toString(), v -> v));
 
         return relations.stream().map(rel -> {
             FriendVO vo = new FriendVO();
             String friendIdStr = rel.getFriendId().toString();
 
-            vo.setId(friendIdStr);
+            vo.setId(rel.getFriendId());
             vo.setRemark(rel.getRemark());
             vo.setGroupId(rel.getGroupId() == null ? 0L : rel.getGroupId());
 

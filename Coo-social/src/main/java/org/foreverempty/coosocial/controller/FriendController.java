@@ -1,5 +1,6 @@
 package org.foreverempty.coosocial.controller;
 
+import org.foreverempty.common.PageResult;
 import org.foreverempty.common.Result;
 import org.foreverempty.common.vo.UserSimpleVO;
 import org.foreverempty.coosocial.dto.FriendApplyDTO;
@@ -27,6 +28,13 @@ public class FriendController {
     @GetMapping("/search")
     public Result<List<UserSimpleVO>> searchFriend(@RequestParam String keyword) {
         return friendService.searchFriend(keyword);
+    }
+
+    @GetMapping("/search/global")
+    public Result<PageResult<UserSimpleVO>> searchAllFriend(@RequestParam String keyword,
+                                                            @RequestParam int pageNum,
+                                                            @RequestParam int pageSize) {
+        return friendService.searchAllFriend(keyword, pageNum, pageSize);
     }
 
     @PostMapping("/apply")

@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 
 @Data
 public class UserFullVO {
-    private String id;
+    private Long id;
+    private String username;
     private String nickname;
     private String avatar;
     private LocalDateTime createTime;

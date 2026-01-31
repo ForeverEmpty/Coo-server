@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class FriendApplyDTO {
-    private String targetId;
+    private Long targetId;
     private String msg;
     private String remark;
 }

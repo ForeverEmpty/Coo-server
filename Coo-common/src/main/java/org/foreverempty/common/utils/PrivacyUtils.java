@@ -44,9 +44,9 @@ public class PrivacyUtils {
                     String switchName = annotation.value();
                     Field infoField = info.getClass().getDeclaredField(switchName);
                     infoField.setAccessible(true);
-                    Integer isPublic = (Integer) infoField.get(info);
+                    Boolean isPublic = (Boolean) infoField.get(info);
 
-                    if (Integer.valueOf(0).equals(isPublic)) {
+                    if (Boolean.valueOf(false).equals(isPublic)) {
                         voField.setAccessible(true);
                         voField.set(vo, null);
                     }

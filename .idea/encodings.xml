@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$APPLICATION_HOME_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Coo-auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Coo-chat/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/Coo-common/src/main/java" charset="UTF-8" />
@@ -10,6 +9,5 @@
     <file url="file://$PROJECT_DIR$/Coo-social/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/test/src/main/java" charset="UTF-8" />
   </component>
 </project>

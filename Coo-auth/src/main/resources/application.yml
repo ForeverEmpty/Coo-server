@@ -6,10 +6,15 @@ spring:
     virtual:
       enabled: true # 开启虚拟线程，极大提升高并发能力
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/coo_user?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://127.0.0.1:3306/coo_chat?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  elasticsearch:
+    uris: http://127.0.0.1:9200
+    connection-timeout: 5s
+    socket-timeout: 30s
 
 mybatis-plus:
   configuration:

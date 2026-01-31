@@ -28,4 +28,6 @@ public class UserInfo {
     private Boolean publicJob;
 
     private String background;
+
+    private Boolean publicMutualFriend;
 }

@@ -1,6 +1,5 @@
 package org.foreverempty.coogateway.filter;
 
-import com.alibaba.nacos.shaded.io.grpc.Server;
 import org.foreverempty.common.utils.JwtUtils;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;

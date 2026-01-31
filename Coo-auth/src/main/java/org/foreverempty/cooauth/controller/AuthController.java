@@ -1,5 +1,6 @@
 package org.foreverempty.cooauth.controller;
 
+import org.foreverempty.common.PageResult;
 import org.foreverempty.common.Result;
 import org.foreverempty.common.vo.UserSimpleVO;
 import org.foreverempty.cooauth.dto.PrivacyUpdateDTO;
@@ -22,12 +23,13 @@ public class AuthController {
     public Result<String> register(@RequestBody Map<String, String> params) {
         String username = params.get("username");
         String password = params.get("password");
+        String nickname = params.get("nickname");
 
         if (username == null || password == null) {
             return Result.error("Username or Password is null");
         }
 
-        return authService.register(username, password);
+        return authService.register(username, password, nickname);
     }
 
     @PostMapping("/login")
@@ -73,5 +75,14 @@ public class AuthController {
     @GetMapping("/user/search")
     public Result<List<UserSimpleVO>> searchUser(@RequestParam String keyword) {
         return authService.searchUser(keyword);
+    }
+
+    @GetMapping("/user/search/global")
+    public Result<PageResult<UserSimpleVO>> searchAllUsers(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "20") int pageSize
+    ) {
+        return authService.searchAllUsers(keyword, pageNum, pageSize);
     }
 }

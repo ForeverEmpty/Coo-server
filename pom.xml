@@ -19,6 +19,8 @@
         <module>Coo-auth</module>
         <module>Coo-gateway</module>
         <module>Coo-file</module>
+        <module>Coo-chat</module>
+        <module>Coo-social</module>
     </modules>
 
     <properties>

@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Data
 public class UpdateProfileDTO {
     private String nickname;
-    private String gender;
+    private Integer gender;
     private LocalDate birthday;
     private String signature;
     private String region;
