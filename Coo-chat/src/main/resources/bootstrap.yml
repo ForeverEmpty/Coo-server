@@ -8,7 +8,7 @@ spring:
         file-extension: yaml        # 对应 Data ID 的后缀
         group: DEFAULT_GROUP
         shared-configs:
-          - data-id: Coo-jwt.yaml
+          - data-id: Coo-auth.yaml
             group: DEFAULT_GROUP
             refresh: true
       discovery:

@@ -3,7 +3,6 @@ package org.foreverempty.common.config;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import org.foreverempty.common.interceptor.UserInterceptor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -36,11 +35,5 @@ public class CommonAutoConfiguration {
 
             builder.failOnEmptyBeans(false);
         };
-    }
-
-    @Bean
-    @ConditionalOnClass(name = "org.springframework.web.servlet.HandlerInterceptor")
-    public UserInterceptor userInterceptor() {
-        return new UserInterceptor();
     }
 }

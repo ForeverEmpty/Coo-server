@@ -11,7 +11,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableDiscoveryClient
 @EnableElasticsearchRepositories(basePackages = "org.foreverempty.cooauth.es.repository")
 @MapperScan("org.foreverempty.cooauth.mapper")
-@ComponentScan(basePackages = { "org.foreverempty.cooauth", "org.foreverempty.common" })
+@ComponentScan(basePackages = {"org.foreverempty.cooauth", "org.foreverempty.common"})
 public class CooAuthApplication {
 
     public static void main(String[] args) {

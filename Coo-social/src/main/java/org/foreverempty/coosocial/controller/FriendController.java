@@ -32,8 +32,8 @@ public class FriendController {
 
     @GetMapping("/search/global")
     public Result<PageResult<UserSimpleVO>> searchAllFriend(@RequestParam String keyword,
-            @RequestParam int pageNum,
-            @RequestParam int pageSize) {
+                                                            @RequestParam int pageNum,
+                                                            @RequestParam int pageSize) {
         return friendService.searchAllFriend(keyword, pageNum, pageSize);
     }
 
@@ -42,7 +42,7 @@ public class FriendController {
         return friendService.sendApply(dto);
     }
 
-    @GetMapping("/apply/list")
+    @PostMapping("/apply/list")
     public Result<List<FriendApplyVO>> applyList() {
         return friendService.getApplyList();
     }
@@ -50,10 +50,5 @@ public class FriendController {
     @PostMapping("/audit")
     public Result<String> audit(@RequestBody FriendAuditDTO dto) {
         return friendService.auditApply(dto);
-    }
-
-    @PostMapping("/unignore/{applyId}")
-    public Result<String> unignore(@PathVariable Long applyId) {
-        return friendService.unignoreApply(applyId);
     }
 }
