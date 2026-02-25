@@ -42,7 +42,7 @@ public class FriendController {
         return friendService.sendApply(dto);
     }
 
-    @PostMapping("/apply/list")
+    @GetMapping("/apply/list")
     public Result<List<FriendApplyVO>> applyList() {
         return friendService.getApplyList();
     }
@@ -50,5 +50,10 @@ public class FriendController {
     @PostMapping("/audit")
     public Result<String> audit(@RequestBody FriendAuditDTO dto) {
         return friendService.auditApply(dto);
+    }
+
+    @PostMapping("/unignore/{applyId}")
+    public Result<String> unignore(@PathVariable Long applyId) {
+        return friendService.unignoreApply(applyId);
     }
 }

@@ -1,6 +1,7 @@
 package org.foreverempty.coosocial.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.foreverempty.common.PageResult;
 import org.foreverempty.common.Result;
@@ -24,12 +25,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class FriendService {
+    private static final int APPLY_STATUS_PENDING = 0;
+    private static final int APPLY_STATUS_APPROVED = 1;
+    private static final int APPLY_STATUS_REJECTED = 2;
+    private static final int APPLY_STATUS_IGNORED = 3;
 
     @Autowired
     private FriendMapper friendMapper;
@@ -116,7 +122,7 @@ public class FriendService {
                 new LambdaQueryWrapper<FriendApply>()
                         .eq(FriendApply::getFromId, currentUserId)
                         .eq(FriendApply::getToId, targetId)
-                        .eq(FriendApply::getStatus, 0)
+                        .eq(FriendApply::getStatus, APPLY_STATUS_PENDING)
         );
 
         if (exist != null) {
@@ -127,7 +133,7 @@ public class FriendService {
         apply.setFromId(currentUserId);
         apply.setToId(targetId);
         apply.setMsg(dto.getMsg());
-        apply.setStatus(0);
+        apply.setStatus(APPLY_STATUS_PENDING);
         friendApplyMapper.insert(apply);
 
         return Result.success("Apply sent");
@@ -146,7 +152,16 @@ public class FriendService {
             return Result.success(Collections.emptyList());
         }
 
-        List<Long> fromIds = dbApplies.stream()
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+        List<FriendApply> visibleApplies = dbApplies.stream()
+                .filter(apply -> !isExpiredRejected(apply, sevenDaysAgo))
+                .toList();
+
+        if (visibleApplies.isEmpty()) {
+            return Result.success(Collections.emptyList());
+        }
+
+        List<Long> fromIds = visibleApplies.stream()
                 .map(FriendApply::getFromId)
                 .distinct()
                 .toList();
@@ -156,7 +171,7 @@ public class FriendService {
         Map<String, UserSimpleVO> userMap = rpcResult.getData().stream()
                 .collect(Collectors.toMap(v -> v.getId().toString(), v -> v));
 
-        List<FriendApplyVO> vos = dbApplies.stream().map(apply -> {
+        List<FriendApplyVO> vos = visibleApplies.stream().map(apply -> {
             FriendApplyVO vo = new FriendApplyVO();
             BeanUtils.copyProperties(apply, vo);
 
@@ -174,6 +189,31 @@ public class FriendService {
     }
 
     @Transactional
+    public int recoverExpiredIgnoredApplies() {
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+        int updatedByUpdateTime = friendApplyMapper.update(
+                null,
+                new LambdaUpdateWrapper<FriendApply>()
+                        .set(FriendApply::getStatus, APPLY_STATUS_PENDING)
+                        .eq(FriendApply::getStatus, APPLY_STATUS_IGNORED)
+                        .isNotNull(FriendApply::getUpdateTime)
+                        .le(FriendApply::getUpdateTime, sevenDaysAgo)
+        );
+
+        int updatedByCreateTime = friendApplyMapper.update(
+                null,
+                new LambdaUpdateWrapper<FriendApply>()
+                        .set(FriendApply::getStatus, APPLY_STATUS_PENDING)
+                        .eq(FriendApply::getStatus, APPLY_STATUS_IGNORED)
+                        .isNull(FriendApply::getUpdateTime)
+                        .le(FriendApply::getCreateTime, sevenDaysAgo)
+        );
+
+        return updatedByUpdateTime + updatedByCreateTime;
+    }
+
+    @Transactional
     public Result<String> auditApply(FriendAuditDTO dto) {
         Long currentUserId = UserContext.getUserId();
 
@@ -187,14 +227,14 @@ public class FriendService {
             return Result.error("Do not have permission");
         }
 
-        if (apply.getStatus() != 0) {
+        if (apply.getStatus() != APPLY_STATUS_PENDING) {
             return Result.error("Apply already processed");
         }
 
         apply.setStatus(dto.getStatus());
         friendApplyMapper.updateById(apply);
 
-        if (dto.getStatus() == 1) {
+        if (dto.getStatus() == APPLY_STATUS_APPROVED) {
             Long friendId = apply.getFromId();
 
             Friend f1 = new Friend();
@@ -215,6 +255,29 @@ public class FriendService {
         }
 
         return Result.success("Apply processed");
+    }
+
+    @Transactional
+    public Result<String> unignoreApply(Long applyId) {
+        Long currentUserId = UserContext.getUserId();
+
+        FriendApply apply = friendApplyMapper.selectById(applyId);
+        if (apply == null) {
+            return Result.error("Apply not found");
+        }
+
+        if (!apply.getToId().equals(currentUserId)) {
+            return Result.error("Do not have permission");
+        }
+
+        if (apply.getStatus() != APPLY_STATUS_IGNORED) {
+            return Result.error("Apply is not ignored");
+        }
+
+        apply.setStatus(APPLY_STATUS_PENDING);
+        friendApplyMapper.updateById(apply);
+
+        return Result.success("Apply restored");
     }
 
     private List<FriendVO> getFriendListInternal(Long userId) {
@@ -267,5 +330,18 @@ public class FriendService {
 
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    private boolean isExpiredRejected(FriendApply apply, LocalDateTime time) {
+        Integer status = apply.getStatus();
+        if (status == null || status != APPLY_STATUS_REJECTED) {
+            return false;
+        }
+
+        LocalDateTime processedTime = apply.getUpdateTime() != null
+                ? apply.getUpdateTime()
+                : apply.getCreateTime();
+
+        return processedTime != null && !processedTime.isAfter(time);
     }
 }

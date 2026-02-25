@@ -7,5 +7,9 @@ spring:
         server-addr: 127.0.0.1:8848 # Nacos 地址
         file-extension: yaml        # 对应 Data ID 的后缀
         group: DEFAULT_GROUP
+        shared-configs:
+          - data-id: Coo-jwt.yaml
+            group: DEFAULT_GROUP
+            refresh: true
       discovery:
         server-addr: 127.0.0.1:8848 # 之前的服务发现配置也可以移到这里

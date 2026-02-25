@@ -40,8 +40,8 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
         String path = request.getURI().getPath();
 
         for (String whitePath : WHITE_LIST) {
-            if (antPathMatcher.match(path, whitePath)) {
-                return chain.filter(exchange);
+            if (antPathMatcher.match(whitePath, path)) {
+                return chain.filter(exchange.mutate().request(request).build());
             }
         }
 

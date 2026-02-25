@@ -18,7 +18,7 @@ public class UserCanalSyncTask extends AbstractCanalHandler implements CommandLi
 
     @Override
     protected String getDestination() {
-        return "coo_chat\\.user";
+        return "coo_chat\\.u_user";
     }
 
     @Override

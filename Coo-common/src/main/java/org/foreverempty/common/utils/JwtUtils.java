@@ -27,7 +27,7 @@ public class JwtUtils {
     @PostConstruct
     public void init() {
         SECRET_KEY = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        EXPIRE = System.currentTimeMillis() + expire;
+        EXPIRE = expire;
     }
 
     public static String createToken(Long userId) {
@@ -40,6 +40,9 @@ public class JwtUtils {
     }
 
     public static Long getUserId(String token) {
+        if (token == null || token.isBlank()) {
+            return null;
+        }
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(SECRET_KEY)

@@ -1,4 +1,4 @@
-package org.foreverempty.cooauth.config;
+package org.foreverempty.coosocial.config;
 
 import org.foreverempty.common.interceptor.UserInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +12,9 @@ public class MvcConfig implements WebMvcConfigurer {
     @Autowired
     private UserInterceptor userInterceptor;
 
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(userInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns("/api/auth/login", "api/auth/register");
+        registry.addInterceptor(userInterceptor).addPathPatterns("/**");
     }
 }
