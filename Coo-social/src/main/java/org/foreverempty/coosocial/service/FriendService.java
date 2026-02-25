@@ -49,8 +49,7 @@ public class FriendService {
         List<FriendGroup> dbGroups = friendGroupMapper.selectList(
                 new LambdaQueryWrapper<FriendGroup>()
                         .eq(FriendGroup::getUserId, currentUserId)
-                        .orderByAsc(FriendGroup::getSort)
-        );
+                        .orderByAsc(FriendGroup::getSort));
 
         List<FriendVO> allFriends = this.getFriendListInternal(currentUserId);
 
@@ -105,8 +104,7 @@ public class FriendService {
         Long count = friendMapper.selectCount(
                 new LambdaQueryWrapper<Friend>()
                         .eq(Friend::getUserId, currentUserId)
-                        .eq(Friend::getFriendId, targetId)
-        );
+                        .eq(Friend::getFriendId, targetId));
 
         if (count > 0) {
             return Result.error("Friendship already exists");
@@ -116,11 +114,31 @@ public class FriendService {
                 new LambdaQueryWrapper<FriendApply>()
                         .eq(FriendApply::getFromId, currentUserId)
                         .eq(FriendApply::getToId, targetId)
-                        .eq(FriendApply::getStatus, 0)
-        );
+                        .eq(FriendApply::getStatus, 0));
 
         if (exist != null) {
             return Result.error("Friend apply already exists");
+        }
+
+        FriendApply ignored = friendApplyMapper.selectOne(
+                new LambdaQueryWrapper<FriendApply>()
+                        .eq(FriendApply::getFromId, currentUserId)
+                        .eq(FriendApply::getToId, targetId)
+                        .eq(FriendApply::getStatus, 3)
+                        .ge(FriendApply::getUpdateTime, java.time.LocalDateTime.now().minusDays(7)));
+
+        if (ignored != null) {
+            return Result.error("You have been ignored by this user recently");
+        }
+
+        FriendApply reverse = friendApplyMapper.selectOne(
+                new LambdaQueryWrapper<FriendApply>()
+                        .eq(FriendApply::getFromId, targetId)
+                        .eq(FriendApply::getToId, currentUserId)
+                        .eq(FriendApply::getStatus, 0));
+
+        if (reverse != null) {
+            return Result.error("This user has already sent you a friend request");
         }
 
         FriendApply apply = new FriendApply();
@@ -139,8 +157,13 @@ public class FriendService {
         List<FriendApply> dbApplies = friendApplyMapper.selectList(
                 new LambdaQueryWrapper<FriendApply>()
                         .eq(FriendApply::getToId, currentUserId)
-                        .orderByDesc(FriendApply::getId)
-        );
+                        .and(wrapper -> wrapper
+                                .eq(FriendApply::getStatus, 0)
+                                .or()
+                                .nested(w -> w
+                                        .ne(FriendApply::getStatus, 0)
+                                        .ge(FriendApply::getUpdateTime, java.time.LocalDateTime.now().minusDays(7))))
+                        .orderByDesc(FriendApply::getId));
 
         if (dbApplies.isEmpty()) {
             return Result.success(Collections.emptyList());
@@ -191,6 +214,11 @@ public class FriendService {
             return Result.error("Apply already processed");
         }
 
+        // 验证状态值：1-同意, 2-拒绝, 3-忽略
+        if (dto.getStatus() != 1 && dto.getStatus() != 2 && dto.getStatus() != 3) {
+            return Result.error("Invalid status");
+        }
+
         apply.setStatus(dto.getStatus());
         friendApplyMapper.updateById(apply);
 
@@ -217,12 +245,33 @@ public class FriendService {
         return Result.success("Apply processed");
     }
 
+    public Result<String> unignoreApply(Long applyId) {
+        Long currentUserId = UserContext.getUserId();
+
+        FriendApply apply = friendApplyMapper.selectById(applyId);
+        if (apply == null) {
+            return Result.error("Application not found");
+        }
+
+        if (!apply.getToId().equals(currentUserId)) {
+            return Result.error("No permission");
+        }
+
+        if (apply.getStatus() != 3) {
+            return Result.error("Application is not ignored");
+        }
+
+        apply.setStatus(0);
+        friendApplyMapper.updateById(apply);
+
+        return Result.success("Unignored successfully");
+    }
+
     private List<FriendVO> getFriendListInternal(Long userId) {
         List<Friend> relations = friendMapper.selectList(
                 new LambdaQueryWrapper<Friend>()
                         .eq(Friend::getUserId, userId)
-                        .eq(Friend::getStatus, 1)
-        );
+                        .eq(Friend::getStatus, 1));
 
         if (relations == null || relations.isEmpty()) {
             return Collections.emptyList();

@@ -16,7 +16,7 @@ public class FriendApply {
     private Long toId;
     private String msg;
     /**
-     * 0-待处理, 1-已同意, 2-已拒绝
+     * 0-待处理, 1-已同意, 2-已拒绝, 3-已忽略
      */
     private Integer status;
     private LocalDateTime createTime;
