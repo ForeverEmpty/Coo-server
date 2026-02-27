@@ -7,4 +7,6 @@ public class FriendApplyDTO {
     private Long targetId;
     private String msg;
     private String remark;
+    private String source;
+    private Long groupId;
 }

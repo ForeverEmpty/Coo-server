@@ -24,11 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
-import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,8 +50,7 @@ public class AuthService {
     @Transactional
     public Result<String> register(String username, String password, String nickname) {
         User existUser = userMapper.selectOne(
-                new LambdaQueryWrapper<User>().eq(User::getUsername, username)
-        );
+                new LambdaQueryWrapper<User>().eq(User::getUsername, username));
 
         if (existUser != null) {
             return Result.error("Username is exist");
@@ -83,8 +77,7 @@ public class AuthService {
 
     public Result<String> login(String username, String password) {
         User user = userMapper.selectOne(
-                new LambdaQueryWrapper<User>().eq(User::getUsername, username)
-        );
+                new LambdaQueryWrapper<User>().eq(User::getUsername, username));
 
         if (user == null || !bCryptPasswordEncoder.matches(password, user.getPassword())) {
             return Result.error("Username or Password is incorrect");
@@ -112,7 +105,9 @@ public class AuthService {
         User user = userMapper.selectById(userId);
         UserInfo info = userInfoMapper.selectById(userId);
 
-        if (user == null) return Result.error("User not found");
+        if (user == null) {
+            return Result.error("User not found");
+        }
 
         UserFullVO vo = new UserFullVO();
         BeanUtils.copyProperties(user, vo);
@@ -203,7 +198,7 @@ public class AuthService {
 
         int rows = userInfoMapper.updateById(info);
 
-        if (rows == 0){
+        if (rows == 0) {
             userInfoMapper.insert(info);
         }
 
@@ -241,15 +236,13 @@ public class AuthService {
                         .like(User::getUsername, keyword)
                         .or()
                         .like(User::getNickname, keyword)
-                        .last("limit 20")
-        );
+                        .last("limit 20"));
 
         List<UserSimpleVO> vos = users.stream().map(u -> new UserSimpleVO(
-                        u.getId(),
-                        u.getUsername(),
-                        u.getNickname(),
-                        u.getAvatar()
-        )).toList();
+                u.getId(),
+                u.getUsername(),
+                u.getNickname(),
+                u.getAvatar())).toList();
 
         return Result.success(vos);
     }
@@ -262,9 +255,7 @@ public class AuthService {
                             0L,
                             pageNum,
                             pageSize,
-                            false
-                    )
-            );
+                            false));
         }
 
         String kw = keyword.trim();
@@ -273,7 +264,7 @@ public class AuthService {
 
         Page<UserDoc> pageResult;
 
-        if (kw.matches("\\d{10,20}")){
+        if (kw.matches("\\d{10,20}")) {
             Optional<UserDoc> docOpt = userSearchRepository.findById(kw);
 
             if (docOpt.isPresent()) {
@@ -291,8 +282,7 @@ public class AuthService {
                 pageResult.getTotalElements(),
                 pageNum,
                 pageSize,
-                pageResult.hasNext()
-        );
+                pageResult.hasNext());
 
         return Result.success(finalResult);
     }
@@ -302,7 +292,6 @@ public class AuthService {
                 Long.parseLong(doc.getId()),
                 doc.getUsername(),
                 doc.getNickname(),
-                doc.getAvatar()
-        );
+                doc.getAvatar());
     }
 }

@@ -14,7 +14,9 @@ public class FriendApply {
     private Long id;
     private Long fromId;
     private Long toId;
+    private String source;
     private String msg;
+    private Long groupId;
     /**
      * 0-待处理, 1-已同意, 2-已拒绝
      */

@@ -34,4 +34,5 @@ public class UserFullVO {
     private Boolean publicJob;
 
     private Boolean publicMutualFriend;
+    private Boolean isFriend;
 }

@@ -7,4 +7,5 @@ public class FriendAuditDTO {
     private Long applyId;
     private Integer status;
     private String remark;
+    private Long groupId;
 }

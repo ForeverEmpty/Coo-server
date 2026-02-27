@@ -6,9 +6,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.foreverempty.common.PageResult;
 import org.foreverempty.common.Result;
 import org.foreverempty.common.context.UserContext;
+import org.foreverempty.common.vo.UserFullVO;
 import org.foreverempty.common.vo.UserSimpleVO;
+import org.foreverempty.coosocial.content.FriendApplyStatus;
+import org.foreverempty.coosocial.content.FriendSource;
+import org.foreverempty.coosocial.content.FriendStatus;
 import org.foreverempty.coosocial.dto.FriendApplyDTO;
 import org.foreverempty.coosocial.dto.FriendAuditDTO;
+import org.foreverempty.coosocial.dto.FriendGroupAddDTO;
+import org.foreverempty.coosocial.dto.FriendGroupUpdateDTO;
+import org.foreverempty.coosocial.dto.FriendGroupSortDTO;
 import org.foreverempty.coosocial.entity.Friend;
 import org.foreverempty.coosocial.entity.FriendApply;
 import org.foreverempty.coosocial.entity.FriendGroup;
@@ -32,11 +39,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FriendService {
-    private static final int APPLY_STATUS_PENDING = 0;
-    private static final int APPLY_STATUS_APPROVED = 1;
-    private static final int APPLY_STATUS_REJECTED = 2;
-    private static final int APPLY_STATUS_IGNORED = 3;
-
     @Autowired
     private FriendMapper friendMapper;
 
@@ -55,8 +57,7 @@ public class FriendService {
         List<FriendGroup> dbGroups = friendGroupMapper.selectList(
                 new LambdaQueryWrapper<FriendGroup>()
                         .eq(FriendGroup::getUserId, currentUserId)
-                        .orderByAsc(FriendGroup::getSort)
-        );
+                        .orderByAsc(FriendGroup::getSort));
 
         List<FriendVO> allFriends = this.getFriendListInternal(currentUserId);
 
@@ -103,18 +104,42 @@ public class FriendService {
     public Result<String> sendApply(FriendApplyDTO dto) {
         Long currentUserId = UserContext.getUserId();
         Long targetId = dto.getTargetId();
+        FriendSource source = FriendSource.fromCode(dto.getSource());
+        Long groupId = dto.getGroupId();
+
+        if (source == null) {
+            return Result.error("Invalid source, only SEARCH/QR/GROUP are supported");
+        }
 
         if (currentUserId.equals(targetId)) {
             return Result.error("Do not apply to yourself");
         }
 
-        Long count = friendMapper.selectCount(
+        Result<String> groupValidationResult = validateGroupBelongsToCurrentUser(currentUserId, groupId);
+        if (groupValidationResult != null) {
+            return groupValidationResult;
+        }
+
+        Friend relation = friendMapper.selectOne(
                 new LambdaQueryWrapper<Friend>()
                         .eq(Friend::getUserId, currentUserId)
-                        .eq(Friend::getFriendId, targetId)
-        );
+                        .eq(Friend::getFriendId, targetId));
 
-        if (count > 0) {
+        if (relation != null) {
+            FriendStatus relationStatus = FriendStatus.fromCode(relation.getStatus());
+            if (relationStatus == null
+                    || relationStatus == FriendStatus.NORMAL
+                    || relationStatus == FriendStatus.BLOCKED) {
+                return Result.error("Friendship already exists");
+            }
+        }
+
+        Friend reverseRelation = friendMapper.selectOne(
+                new LambdaQueryWrapper<Friend>()
+                        .eq(Friend::getUserId, targetId)
+                        .eq(Friend::getFriendId, currentUserId)
+                        .eq(Friend::getStatus, FriendStatus.NORMAL.getCode()));
+        if (reverseRelation != null) {
             return Result.error("Friendship already exists");
         }
 
@@ -122,8 +147,7 @@ public class FriendService {
                 new LambdaQueryWrapper<FriendApply>()
                         .eq(FriendApply::getFromId, currentUserId)
                         .eq(FriendApply::getToId, targetId)
-                        .eq(FriendApply::getStatus, APPLY_STATUS_PENDING)
-        );
+                        .eq(FriendApply::getStatus, FriendApplyStatus.PENDING.getCode()));
 
         if (exist != null) {
             return Result.error("Friend apply already exists");
@@ -132,8 +156,10 @@ public class FriendService {
         FriendApply apply = new FriendApply();
         apply.setFromId(currentUserId);
         apply.setToId(targetId);
+        apply.setSource(source.getCode());
         apply.setMsg(dto.getMsg());
-        apply.setStatus(APPLY_STATUS_PENDING);
+        apply.setGroupId(normalizeGroupId(groupId));
+        apply.setStatus(FriendApplyStatus.PENDING.getCode());
         friendApplyMapper.insert(apply);
 
         return Result.success("Apply sent");
@@ -145,8 +171,7 @@ public class FriendService {
         List<FriendApply> dbApplies = friendApplyMapper.selectList(
                 new LambdaQueryWrapper<FriendApply>()
                         .eq(FriendApply::getToId, currentUserId)
-                        .orderByDesc(FriendApply::getId)
-        );
+                        .orderByDesc(FriendApply::getId));
 
         if (dbApplies.isEmpty()) {
             return Result.success(Collections.emptyList());
@@ -188,6 +213,60 @@ public class FriendService {
         return Result.success(vos);
     }
 
+    public Result<List<FriendApplyVO>> getSentApplyList() {
+        Long currentUserId = UserContext.getUserId();
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+        List<FriendApply> dbApplies = friendApplyMapper.selectList(
+                new LambdaQueryWrapper<FriendApply>()
+                        .eq(FriendApply::getFromId, currentUserId)
+                        .eq(FriendApply::getStatus, FriendApplyStatus.PENDING.getCode())
+                        .ge(FriendApply::getCreateTime, sevenDaysAgo)
+                        .orderByDesc(FriendApply::getId));
+
+        if (dbApplies == null || dbApplies.isEmpty()) {
+            return Result.success(Collections.emptyList());
+        }
+
+        List<Long> toIds = dbApplies.stream()
+                .map(FriendApply::getToId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        Map<String, UserSimpleVO> userMap = Collections.emptyMap();
+        if (!toIds.isEmpty()) {
+            try {
+                Result<List<UserSimpleVO>> rpcResult = userFeignClient.getUserBatch(toIds);
+                List<UserSimpleVO> users = rpcResult != null ? rpcResult.getData() : null;
+                if (users != null) {
+                    userMap = users.stream()
+                            .collect(Collectors.toMap(v -> v.getId().toString(), v -> v));
+                }
+            } catch (Exception e) {
+                log.error("Get sent apply list failed, RPC call exception", e);
+            }
+        }
+
+        Map<String, UserSimpleVO> finalUserMap = userMap;
+        List<FriendApplyVO> vos = dbApplies.stream().map(apply -> {
+            FriendApplyVO vo = new FriendApplyVO();
+            BeanUtils.copyProperties(apply, vo);
+
+            if (apply.getToId() != null) {
+                UserSimpleVO user = finalUserMap.get(apply.getToId().toString());
+                if (user != null) {
+                    vo.setNickname(user.getNickname());
+                    vo.setAvatar(user.getAvatar());
+                }
+            }
+
+            return vo;
+        }).toList();
+
+        return Result.success(vos);
+    }
+
     @Transactional
     public int recoverExpiredIgnoredApplies() {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
@@ -195,20 +274,18 @@ public class FriendService {
         int updatedByUpdateTime = friendApplyMapper.update(
                 null,
                 new LambdaUpdateWrapper<FriendApply>()
-                        .set(FriendApply::getStatus, APPLY_STATUS_PENDING)
-                        .eq(FriendApply::getStatus, APPLY_STATUS_IGNORED)
+                        .set(FriendApply::getStatus, FriendApplyStatus.PENDING.getCode())
+                        .eq(FriendApply::getStatus, FriendApplyStatus.IGNORED.getCode())
                         .isNotNull(FriendApply::getUpdateTime)
-                        .le(FriendApply::getUpdateTime, sevenDaysAgo)
-        );
+                        .le(FriendApply::getUpdateTime, sevenDaysAgo));
 
         int updatedByCreateTime = friendApplyMapper.update(
                 null,
                 new LambdaUpdateWrapper<FriendApply>()
-                        .set(FriendApply::getStatus, APPLY_STATUS_PENDING)
-                        .eq(FriendApply::getStatus, APPLY_STATUS_IGNORED)
+                        .set(FriendApply::getStatus, FriendApplyStatus.PENDING.getCode())
+                        .eq(FriendApply::getStatus, FriendApplyStatus.IGNORED.getCode())
                         .isNull(FriendApply::getUpdateTime)
-                        .le(FriendApply::getCreateTime, sevenDaysAgo)
-        );
+                        .le(FriendApply::getCreateTime, sevenDaysAgo));
 
         return updatedByUpdateTime + updatedByCreateTime;
     }
@@ -227,31 +304,24 @@ public class FriendService {
             return Result.error("Do not have permission");
         }
 
-        if (apply.getStatus() != APPLY_STATUS_PENDING) {
+        if (!Objects.equals(apply.getStatus(), FriendApplyStatus.PENDING.getCode())) {
             return Result.error("Apply already processed");
         }
 
         apply.setStatus(dto.getStatus());
         friendApplyMapper.updateById(apply);
 
-        if (dto.getStatus() == APPLY_STATUS_APPROVED) {
+        if (Objects.equals(dto.getStatus(), FriendApplyStatus.APPROVED.getCode())) {
             Long friendId = apply.getFromId();
+            FriendSource source = FriendSource.fromCode(apply.getSource());
+            if (source == null) {
+                source = FriendSource.SEARCH;
+            }
 
-            Friend f1 = new Friend();
-            f1.setUserId(currentUserId);
-            f1.setFriendId(friendId);
-            f1.setRemark(dto.getRemark());
-            f1.setStatus(1);
-            f1.setSource("APPLY");
-            friendMapper.insert(f1);
-
-            Friend f2 = new Friend();
-            f2.setUserId(friendId);
-            f2.setFriendId(currentUserId);
-            f2.setRemark("");
-            f2.setStatus(1);
-            f2.setSource("APPLY");
-            friendMapper.insert(f2);
+            saveOrUpdateFriendRelation(currentUserId, friendId, dto.getRemark(), source.getCode(), true,
+                    dto.getGroupId());
+            saveOrUpdateFriendRelation(friendId, currentUserId, "", source.getCode(), false,
+                    normalizeGroupId(apply.getGroupId()));
         }
 
         return Result.success("Apply processed");
@@ -270,22 +340,70 @@ public class FriendService {
             return Result.error("Do not have permission");
         }
 
-        if (apply.getStatus() != APPLY_STATUS_IGNORED) {
+        if (!Objects.equals(apply.getStatus(), FriendApplyStatus.IGNORED.getCode())) {
             return Result.error("Apply is not ignored");
         }
 
-        apply.setStatus(APPLY_STATUS_PENDING);
+        apply.setStatus(FriendApplyStatus.PENDING.getCode());
         friendApplyMapper.updateById(apply);
 
         return Result.success("Apply restored");
+    }
+
+    @Transactional
+    public Result<String> deleteFriend(Long friendId) {
+        Long currentUserId = UserContext.getUserId();
+
+        Friend relation = friendMapper.selectOne(
+                new LambdaQueryWrapper<Friend>()
+                        .eq(Friend::getUserId, currentUserId)
+                        .eq(Friend::getFriendId, friendId));
+
+        if (relation == null) {
+            return Result.error("Friend relation not found");
+        }
+
+        friendMapper.deleteById(relation.getId());
+
+        friendMapper.update(
+                null,
+                new LambdaUpdateWrapper<Friend>()
+                        .set(Friend::getStatus, FriendStatus.ONE_WAY.getCode())
+                        .eq(Friend::getUserId, friendId)
+                        .eq(Friend::getFriendId, currentUserId)
+                        .eq(Friend::getStatus, FriendStatus.NORMAL.getCode()));
+
+        return Result.success("Friend deleted");
+    }
+
+    public Result<UserFullVO> getFriendInfo(Long userId) {
+        Long currentUserId = UserContext.getUserId();
+
+        // 1. 获取用户信息
+        Result<UserFullVO> userResult = userFeignClient.getUserInfo(userId);
+        if (userResult.getCode() != 200 || userResult.getData() == null) {
+            return userResult;
+        }
+
+        UserFullVO vo = userResult.getData();
+
+        // 2. 检查好友关系
+        Long count = friendMapper.selectCount(
+                new LambdaQueryWrapper<Friend>()
+                        .eq(Friend::getUserId, currentUserId)
+                        .eq(Friend::getFriendId, userId)
+                        .eq(Friend::getStatus, FriendStatus.NORMAL.getCode()));
+
+        vo.setIsFriend(count > 0);
+
+        return Result.success(vo);
     }
 
     private List<FriendVO> getFriendListInternal(Long userId) {
         List<Friend> relations = friendMapper.selectList(
                 new LambdaQueryWrapper<Friend>()
                         .eq(Friend::getUserId, userId)
-                        .eq(Friend::getStatus, 1)
-        );
+                        .in(Friend::getStatus, FriendStatus.NORMAL.getCode(), FriendStatus.ONE_WAY.getCode()));
 
         if (relations == null || relations.isEmpty()) {
             return Collections.emptyList();
@@ -315,6 +433,7 @@ public class FriendService {
             vo.setId(rel.getFriendId());
             vo.setRemark(rel.getRemark());
             vo.setGroupId(rel.getGroupId() == null ? 0L : rel.getGroupId());
+            vo.setStatus(rel.getStatus());
 
             UserSimpleVO remoteUser = userMap.get(friendIdStr);
             if (remoteUser != null) {
@@ -333,8 +452,8 @@ public class FriendService {
     }
 
     private boolean isExpiredRejected(FriendApply apply, LocalDateTime time) {
-        Integer status = apply.getStatus();
-        if (status == null || status != APPLY_STATUS_REJECTED) {
+        FriendApplyStatus status = FriendApplyStatus.fromCode(apply.getStatus());
+        if (status == null || (status != FriendApplyStatus.REJECTED && status != FriendApplyStatus.APPROVED)) {
             return false;
         }
 
@@ -343,5 +462,158 @@ public class FriendService {
                 : apply.getCreateTime();
 
         return processedTime != null && !processedTime.isAfter(time);
+    }
+
+    public Result<String> addGroup(FriendGroupAddDTO dto) {
+        Long currentUserId = UserContext.getUserId();
+        String name = dto.getName();
+        if (!StringUtils.hasText(name)) {
+            return Result.error("Name cannot be empty");
+        }
+
+        Long count = friendGroupMapper.selectCount(
+                new LambdaQueryWrapper<FriendGroup>()
+                        .eq(FriendGroup::getUserId, currentUserId)
+                        .eq(FriendGroup::getName, name));
+        if (count > 0) {
+            return Result.error("Group name already exists");
+        }
+
+        FriendGroup lastGroup = friendGroupMapper.selectOne(
+                new LambdaQueryWrapper<FriendGroup>()
+                        .eq(FriendGroup::getUserId, currentUserId)
+                        .orderByDesc(FriendGroup::getSort)
+                        .last("limit 1"));
+
+        int sort = lastGroup == null ? 1 : (lastGroup.getSort() == null ? 1 : lastGroup.getSort() + 1);
+
+        FriendGroup group = new FriendGroup();
+        group.setUserId(currentUserId);
+        group.setName(name);
+        group.setSort(sort);
+        friendGroupMapper.insert(group);
+
+        return Result.success("Group added successfully");
+    }
+
+    public Result<String> updateGroup(FriendGroupUpdateDTO dto) {
+        Long currentUserId = UserContext.getUserId();
+        FriendGroup group = friendGroupMapper.selectById(dto.getGroupId());
+        if (group == null || !group.getUserId().equals(currentUserId)) {
+            return Result.error("Group does not exist or no permission");
+        }
+
+        String name = dto.getName();
+        if (!StringUtils.hasText(name)) {
+            return Result.error("Name cannot be empty");
+        }
+
+        Long count = friendGroupMapper.selectCount(
+                new LambdaQueryWrapper<FriendGroup>()
+                        .eq(FriendGroup::getUserId, currentUserId)
+                        .eq(FriendGroup::getName, name)
+                        .ne(FriendGroup::getId, dto.getGroupId()));
+        if (count > 0) {
+            return Result.error("Group name already exists");
+        }
+
+        group.setName(name);
+        friendGroupMapper.updateById(group);
+
+        return Result.success("Group updated successfully");
+    }
+
+    @Transactional
+    public Result<String> deleteGroup(Long groupId) {
+        Long currentUserId = UserContext.getUserId();
+        FriendGroup group = friendGroupMapper.selectById(groupId);
+        if (group == null || !group.getUserId().equals(currentUserId)) {
+            return Result.error("Group does not exist or no permission");
+        }
+
+        friendGroupMapper.deleteById(groupId);
+
+        Friend update = new Friend();
+        update.setGroupId(0L);
+        friendMapper.update(update, new LambdaUpdateWrapper<Friend>()
+                .eq(Friend::getUserId, currentUserId)
+                .eq(Friend::getGroupId, groupId));
+
+        return Result.success("Group deleted successfully");
+    }
+
+    @Transactional
+    public Result<String> sortGroups(FriendGroupSortDTO dto) {
+        Long currentUserId = UserContext.getUserId();
+        List<Long> groupIds = dto.getGroupIds();
+        if (groupIds == null || groupIds.isEmpty()) {
+            return Result.success("No need to sort");
+        }
+
+        for (int i = 0; i < groupIds.size(); i++) {
+            Long groupId = groupIds.get(i);
+            FriendGroup group = friendGroupMapper.selectById(groupId);
+            if (group != null && group.getUserId().equals(currentUserId)) {
+                group.setSort(i);
+                friendGroupMapper.updateById(group);
+            }
+        }
+        return Result.success("Sorting completed successfully");
+    }
+
+    private Result<String> validateGroupBelongsToCurrentUser(Long currentUserId, Long groupId) {
+        Long normalizedGroupId = normalizeGroupId(groupId);
+        if (normalizedGroupId == null) {
+            return null;
+        }
+
+        FriendGroup group = friendGroupMapper.selectById(normalizedGroupId);
+        if (group == null || !Objects.equals(group.getUserId(), currentUserId)) {
+            return Result.error("Invalid group id");
+        }
+        return null;
+    }
+
+    private Long normalizeGroupId(Long groupId) {
+        if (groupId == null || groupId <= 0L) {
+            return null;
+        }
+        return groupId;
+    }
+
+    private void saveOrUpdateFriendRelation(Long userId,
+            Long friendId,
+            String remark,
+            String source,
+            boolean overwriteRemark,
+            Long groupId) {
+        Friend relation = friendMapper.selectOne(
+                new LambdaQueryWrapper<Friend>()
+                        .eq(Friend::getUserId, userId)
+                        .eq(Friend::getFriendId, friendId));
+
+        if (relation == null) {
+            Friend insert = new Friend();
+            insert.setUserId(userId);
+            insert.setFriendId(friendId);
+            insert.setRemark(remark);
+            insert.setStatus(FriendStatus.NORMAL.getCode());
+            insert.setSource(source);
+            if (groupId != null) {
+                insert.setGroupId(groupId);
+            }
+            friendMapper.insert(insert);
+            return;
+        }
+
+        relation.setStatus(FriendStatus.NORMAL.getCode());
+        relation.setSource(source);
+        if (overwriteRemark) {
+            relation.setRemark(remark);
+        }
+        if (groupId != null) {
+            relation.setGroupId(groupId);
+        }
+        friendMapper.updateById(relation);
     }
 }

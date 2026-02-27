@@ -2,6 +2,7 @@ package org.foreverempty.common.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 import org.foreverempty.common.interceptor.UserInterceptor;
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilde
 import org.springframework.context.annotation.Bean;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @AutoConfiguration
@@ -40,6 +42,7 @@ public class CommonAutoConfiguration {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             builder.serializers(new LocalDateTimeSerializer(formatter));
+            builder.deserializerByType(LocalDateTime.class, new LocalDateTimeDeserializer(formatter));
 
             builder.failOnEmptyBeans(false);
         };
