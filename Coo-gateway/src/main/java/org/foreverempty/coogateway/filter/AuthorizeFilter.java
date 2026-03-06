@@ -20,8 +20,7 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
 
     private static final List<String> WHITE_LIST = List.of(
             "/api/auth/login",
-            "/api/auth/register",
-            "/api/chat/**"
+            "/api/auth/register"
     );
 
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();

@@ -4,4 +4,11 @@ server:
 spring:
   threads:
     virtual:
-      enabled: true # 开启虚拟线程，极大提升高并发能力
+      enabled: true
+
+coo:
+  chat:
+    ws:
+      service-name: Coo-chat-ws
+      metadata:
+        protocol: ws

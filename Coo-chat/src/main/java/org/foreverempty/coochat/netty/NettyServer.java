@@ -27,6 +27,9 @@ public class NettyServer implements CommandLineRunner {
     @Autowired
     private ChatHandler chatHandler;
 
+    @Autowired
+    private ChatWsRegistration chatWsRegistration;
+
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
@@ -52,10 +55,12 @@ public class NettyServer implements CommandLineRunner {
                         });
                 log.info("Netty Server start at port {}", port);
                 ChannelFuture f = b.bind(port).sync();
+                chatWsRegistration.registerOnNettyStarted();
                 f.channel().closeFuture().sync();
             } catch (Exception e) {
                 log.error("Netty Server start failed", e);
             } finally {
+                chatWsRegistration.deregister();
                 stop();
             }
         }).start();

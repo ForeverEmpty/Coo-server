@@ -3,12 +3,18 @@ package org.foreverempty.coochat.entity;
 import lombok.Data;
 import org.foreverempty.common.model.ChatData;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.IndexDirection;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document(collation = "chat_message")
+@Document(collection = "chat_message")
+@CompoundIndexes({
+        @CompoundIndex(name = "idx_from_to_ts", def = "{'fromId':1,'toId':1,'timestamp':-1}"),
+        @CompoundIndex(name = "idx_to_from_ts", def = "{'toId':1,'fromId':1,'timestamp':-1}")
+})
 public class ChatMessage {
     @Id
     private String id;

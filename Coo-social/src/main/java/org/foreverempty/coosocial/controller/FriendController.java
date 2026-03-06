@@ -7,11 +7,14 @@ import org.foreverempty.common.vo.UserFullVO;
 import org.foreverempty.coosocial.dto.FriendApplyDTO;
 import org.foreverempty.coosocial.dto.FriendAuditDTO;
 import org.foreverempty.coosocial.dto.FriendGroupAddDTO;
+import org.foreverempty.coosocial.dto.FriendRelationUpdateDTO;
 import org.foreverempty.coosocial.dto.FriendGroupUpdateDTO;
 import org.foreverempty.coosocial.dto.FriendGroupSortDTO;
+import org.foreverempty.coosocial.dto.ChatSessionConfigDTO;
 import org.foreverempty.coosocial.service.FriendService;
 import org.foreverempty.coosocial.vo.FriendApplyVO;
 import org.foreverempty.coosocial.vo.FriendGroupVO;
+import org.foreverempty.coosocial.vo.ChatSessionConfigVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,5 +97,20 @@ public class FriendController {
     @DeleteMapping("/{friendId}")
     public Result<String> deleteFriend(@PathVariable Long friendId) {
         return friendService.deleteFriend(friendId);
+    }
+
+    @PutMapping("/relation")
+    public Result<String> updateFriendRelation(@RequestBody FriendRelationUpdateDTO dto) {
+        return friendService.updateFriendRelation(dto);
+    }
+
+    @GetMapping("/chat/session-config")
+    public Result<ChatSessionConfigVO> getChatSessionConfig() {
+        return friendService.getChatSessionConfig();
+    }
+
+    @PutMapping("/chat/session-config")
+    public Result<String> saveChatSessionConfig(@RequestBody ChatSessionConfigDTO dto) {
+        return friendService.saveChatSessionConfig(dto);
     }
 }

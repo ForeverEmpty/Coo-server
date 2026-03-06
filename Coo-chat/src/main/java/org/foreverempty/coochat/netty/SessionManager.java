@@ -12,17 +12,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 public class SessionManager {
-    private final Map<Long, Set<Channel>> ONLINE_USERS = new ConcurrentHashMap<>();
+    private final Map<Long, Set<Channel>> onlineUsers = new ConcurrentHashMap<>();
 
     public void addSession(Long userId, Channel channel) {
-        ONLINE_USERS.computeIfAbsent(
-                userId,
-                k -> ConcurrentHashMap.newKeySet()
-        ).add(channel);
+        onlineUsers.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet()).add(channel);
     }
 
     public void removeSession(Long userId, Channel channel) {
-        ONLINE_USERS.computeIfPresent(
+        onlineUsers.computeIfPresent(
                 userId,
                 (k, v) -> {
                     v.remove(channel);
@@ -32,23 +29,21 @@ public class SessionManager {
     }
 
     public int getOnlineUserCount() {
-        return ONLINE_USERS.size();
+        return onlineUsers.size();
     }
 
     public void sendMessageToUser(Long userId, String messageText) {
-        Set<Channel> channels = ONLINE_USERS.get(userId);
+        Set<Channel> channels = onlineUsers.get(userId);
         if (channels == null || channels.isEmpty()) {
-            log.info("用户 {} 不在线，跳过推送", userId);
+            log.info("User {} is offline, skip push message", userId);
             return;
         }
 
-        // 构造消息帧
         TextWebSocketFrame frame = new TextWebSocketFrame(messageText);
 
         channels.forEach(ch -> {
             if (ch.isActive()) {
-                // 注意：向多个 Channel 发送同一个 Frame 时，Netty 要求手动增加引用计数
-                // 否则第一个发送完成后，Frame 可能被回收，导致后续发送失败
+                // Use retain() because the same frame is reused for multiple channels.
                 ch.writeAndFlush(frame.retain());
             }
         });

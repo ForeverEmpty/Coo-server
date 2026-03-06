@@ -1,1 +1,3 @@
-org.foreverempty.common.config.CommonAutoConfiguration
+org.foreverempty.common.config.CommonCoreAutoConfiguration
+org.foreverempty.common.config.CommonMybatisAutoConfiguration
+org.foreverempty.common.config.CommonWebMvcAutoConfiguration

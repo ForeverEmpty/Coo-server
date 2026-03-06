@@ -2,6 +2,8 @@ package org.foreverempty.coosocial.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.foreverempty.common.PageResult;
 import org.foreverempty.common.Result;
@@ -11,18 +13,23 @@ import org.foreverempty.common.vo.UserSimpleVO;
 import org.foreverempty.coosocial.content.FriendApplyStatus;
 import org.foreverempty.coosocial.content.FriendSource;
 import org.foreverempty.coosocial.content.FriendStatus;
+import org.foreverempty.coosocial.dto.ChatSessionConfigDTO;
 import org.foreverempty.coosocial.dto.FriendApplyDTO;
 import org.foreverempty.coosocial.dto.FriendAuditDTO;
 import org.foreverempty.coosocial.dto.FriendGroupAddDTO;
 import org.foreverempty.coosocial.dto.FriendGroupUpdateDTO;
 import org.foreverempty.coosocial.dto.FriendGroupSortDTO;
+import org.foreverempty.coosocial.dto.FriendRelationUpdateDTO;
+import org.foreverempty.coosocial.entity.ChatSessionConfig;
 import org.foreverempty.coosocial.entity.Friend;
 import org.foreverempty.coosocial.entity.FriendApply;
 import org.foreverempty.coosocial.entity.FriendGroup;
 import org.foreverempty.coosocial.feign.UserFeignClient;
+import org.foreverempty.coosocial.mapper.ChatSessionConfigMapper;
 import org.foreverempty.coosocial.mapper.FriendApplyMapper;
 import org.foreverempty.coosocial.mapper.FriendGroupMapper;
 import org.foreverempty.coosocial.mapper.FriendMapper;
+import org.foreverempty.coosocial.vo.ChatSessionConfigVO;
 import org.foreverempty.coosocial.vo.FriendApplyVO;
 import org.foreverempty.coosocial.vo.FriendGroupVO;
 import org.foreverempty.coosocial.vo.FriendVO;
@@ -39,6 +46,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FriendService {
+    private static final int MAX_CHAT_ID_LIST_SIZE = 1000;
+
     @Autowired
     private FriendMapper friendMapper;
 
@@ -49,7 +58,13 @@ public class FriendService {
     private FriendApplyMapper friendApplyMapper;
 
     @Autowired
+    private ChatSessionConfigMapper chatSessionConfigMapper;
+
+    @Autowired
     private UserFeignClient userFeignClient;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public Result<List<FriendGroupVO>> getFriendList() {
         Long currentUserId = UserContext.getUserId();
@@ -376,6 +391,98 @@ public class FriendService {
         return Result.success("Friend deleted");
     }
 
+    @Transactional
+    public Result<String> updateFriendRelation(FriendRelationUpdateDTO dto) {
+        Long currentUserId = UserContext.getUserId();
+        if (dto == null || dto.getFriendId() == null) {
+            return Result.error("Friend id cannot be empty");
+        }
+
+        Result<String> groupValidationResult = validateGroupBelongsToCurrentUser(currentUserId, dto.getGroupId());
+        if (groupValidationResult != null) {
+            return groupValidationResult;
+        }
+
+        Friend relation = friendMapper.selectOne(
+                new LambdaQueryWrapper<Friend>()
+                        .eq(Friend::getUserId, currentUserId)
+                        .eq(Friend::getFriendId, dto.getFriendId())
+                        .in(Friend::getStatus, FriendStatus.NORMAL.getCode(), FriendStatus.ONE_WAY.getCode()));
+
+        if (relation == null) {
+            return Result.error("Friend relation not found");
+        }
+
+        if (dto.getRemark() != null) {
+            relation.setRemark(dto.getRemark().trim());
+        }
+
+        if (dto.getGroupId() != null) {
+            Long normalizedGroupId = normalizeGroupId(dto.getGroupId());
+            relation.setGroupId(normalizedGroupId == null ? 0L : normalizedGroupId);
+        }
+
+        friendMapper.updateById(relation);
+        return Result.success("Friend relation updated");
+    }
+
+    public Result<ChatSessionConfigVO> getChatSessionConfig() {
+        Long currentUserId = UserContext.getUserId();
+
+        ChatSessionConfig config = chatSessionConfigMapper.selectOne(
+                new LambdaQueryWrapper<ChatSessionConfig>()
+                        .eq(ChatSessionConfig::getUserId, currentUserId)
+                        .last("limit 1"));
+
+        ChatSessionConfigVO vo = new ChatSessionConfigVO();
+        if (config == null) {
+            vo.setPinnedChatIds(Collections.emptyList());
+            vo.setHiddenRecentChatIds(Collections.emptyList());
+            return Result.success(vo);
+        }
+
+        vo.setPinnedChatIds(parseChatIdList(config.getPinnedChatIds()));
+        vo.setHiddenRecentChatIds(parseChatIdList(config.getHiddenRecentChatIds()));
+        return Result.success(vo);
+    }
+
+    @Transactional
+    public Result<String> saveChatSessionConfig(ChatSessionConfigDTO dto) {
+        Long currentUserId = UserContext.getUserId();
+
+        List<String> pinnedChatIds = sanitizeChatIdList(dto == null ? null : dto.getPinnedChatIds());
+        List<String> hiddenRecentChatIds = sanitizeChatIdList(dto == null ? null : dto.getHiddenRecentChatIds());
+
+        String pinnedJson;
+        String hiddenJson;
+        try {
+            pinnedJson = objectMapper.writeValueAsString(pinnedChatIds);
+            hiddenJson = objectMapper.writeValueAsString(hiddenRecentChatIds);
+        } catch (Exception e) {
+            log.error("Serialize chat session config failed, userId={}", currentUserId, e);
+            return Result.error("Save chat session config failed");
+        }
+
+        ChatSessionConfig config = chatSessionConfigMapper.selectOne(
+                new LambdaQueryWrapper<ChatSessionConfig>()
+                        .eq(ChatSessionConfig::getUserId, currentUserId)
+                        .last("limit 1"));
+
+        if (config == null) {
+            ChatSessionConfig insert = new ChatSessionConfig();
+            insert.setUserId(currentUserId);
+            insert.setPinnedChatIds(pinnedJson);
+            insert.setHiddenRecentChatIds(hiddenJson);
+            chatSessionConfigMapper.insert(insert);
+            return Result.success("Chat session config saved");
+        }
+
+        config.setPinnedChatIds(pinnedJson);
+        config.setHiddenRecentChatIds(hiddenJson);
+        chatSessionConfigMapper.updateById(config);
+        return Result.success("Chat session config saved");
+    }
+
     public Result<UserFullVO> getFriendInfo(Long userId) {
         Long currentUserId = UserContext.getUserId();
 
@@ -615,5 +722,37 @@ public class FriendService {
             relation.setGroupId(groupId);
         }
         friendMapper.updateById(relation);
+    }
+
+    private List<String> parseChatIdList(String rawJson) {
+        if (!StringUtils.hasText(rawJson)) {
+            return Collections.emptyList();
+        }
+        try {
+            List<String> list = objectMapper.readValue(rawJson, new TypeReference<>() {
+            });
+            return sanitizeChatIdList(list);
+        } catch (Exception e) {
+            log.warn("Parse chat session config failed, raw={}", rawJson, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private List<String> sanitizeChatIdList(List<String> rawList) {
+        if (rawList == null || rawList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        for (String chatId : rawList) {
+            if (!StringUtils.hasText(chatId)) {
+                continue;
+            }
+            normalized.add(chatId.trim());
+            if (normalized.size() >= MAX_CHAT_ID_LIST_SIZE) {
+                break;
+            }
+        }
+        return new ArrayList<>(normalized);
     }
 }

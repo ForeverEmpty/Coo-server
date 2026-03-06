@@ -23,8 +23,14 @@ spring:
                 - Path=/api/file/**
               filters:
                 - StripPrefix=2
+            - id: chat_history_route
+              uri: lb://Coo-chat
+              predicates:
+                - Path=/api/chat/history/**
+              filters:
+                - StripPrefix=2
             - id: chat_ws_route
-              uri: lb:ws://Coo-chat
+              uri: lb:ws://Coo-chat-ws
               predicates:
                 - Path=/api/chat/**
               filters:
