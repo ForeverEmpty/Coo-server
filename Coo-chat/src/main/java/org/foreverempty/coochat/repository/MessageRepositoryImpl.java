@@ -1,9 +1,17 @@
 package org.foreverempty.coochat.repository;
 
+import org.bson.Document;
 import org.foreverempty.coochat.entity.ChatMessage;
+import org.foreverempty.coochat.repository.model.RecentPrivateChatSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.aggregation.AddFieldsOperation;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.ComparisonOperators;
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
@@ -36,5 +44,56 @@ public class MessageRepositoryImpl implements MessageRepositoryCustom {
                 .limit(limit);
 
         return mongoTemplate.find(query, ChatMessage.class);
+    }
+
+    @Override
+    public List<RecentPrivateChatSession> queryRecentPrivateSessions(String currentUserId, int limit) {
+        Criteria criteria = new Criteria().andOperator(
+                Criteria.where("chatType").is(1),
+                new Criteria().orOperator(
+                        Criteria.where("fromId").is(currentUserId),
+                        Criteria.where("toId").is(currentUserId)
+                )
+        );
+
+        AddFieldsOperation addPeerId = Aggregation.addFields()
+                .addField("peerId")
+                .withValue(
+                        ConditionalOperators.when(
+                                        ComparisonOperators.valueOf("fromId").equalToValue(currentUserId)
+                                )
+                                .thenValueOf("toId")
+                                .otherwiseValueOf("fromId")
+                )
+                .build();
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                Aggregation.match(criteria),
+                addPeerId,
+                Aggregation.sort(Sort.Direction.DESC, "timestamp"),
+                Aggregation.group("peerId").first(Aggregation.ROOT).as("lastMessage"),
+                Aggregation.project("lastMessage").and("_id").as("peerId"),
+                Aggregation.sort(Sort.Direction.DESC, "lastMessage.timestamp"),
+                Aggregation.limit(limit)
+        );
+
+        AggregationResults<Document> results = mongoTemplate.aggregate(
+                aggregation,
+                mongoTemplate.getCollectionName(ChatMessage.class),
+                Document.class
+        );
+
+        MongoConverter converter = mongoTemplate.getConverter();
+        List<RecentPrivateChatSession> sessions = new ArrayList<>();
+        for (Document row : results.getMappedResults()) {
+            String peerId = row.getString("peerId");
+            Document lastDoc = row.get("lastMessage", Document.class);
+            if (peerId == null || lastDoc == null) {
+                continue;
+            }
+            ChatMessage lastMessage = converter.read(ChatMessage.class, lastDoc);
+            sessions.add(new RecentPrivateChatSession(peerId, lastMessage));
+        }
+        return sessions;
     }
 }

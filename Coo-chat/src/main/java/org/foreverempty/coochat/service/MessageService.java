@@ -10,8 +10,10 @@ import org.foreverempty.coochat.dto.ChatHistoryQueryDTO;
 import org.foreverempty.coochat.entity.ChatMessage;
 import org.foreverempty.coochat.netty.SessionManager;
 import org.foreverempty.coochat.repository.MessageRepository;
+import org.foreverempty.coochat.repository.model.RecentPrivateChatSession;
 import org.foreverempty.coochat.vo.ChatHistoryCursorVO;
 import org.foreverempty.coochat.vo.ChatHistoryMessageVO;
+import org.foreverempty.coochat.vo.ChatRecentPrivateSessionVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -120,6 +122,35 @@ public class MessageService {
         result.setList(list);
         result.setHasMore(hasMore);
         result.setNextCursor(nextCursor);
+        return Result.success(result);
+    }
+
+    public Result<List<ChatRecentPrivateSessionVO>> queryRecentPrivateSessions(Integer limitParam) {
+        Long currentUserId = UserContext.getUserId();
+        if (currentUserId == null) {
+            return Result.error("Unauthorized");
+        }
+
+        int limit = limitParam == null ? 50 : Math.max(1, Math.min(100, limitParam));
+        List<RecentPrivateChatSession> sessions = messageRepository.queryRecentPrivateSessions(
+                String.valueOf(currentUserId),
+                limit
+        );
+
+        List<ChatRecentPrivateSessionVO> result = new ArrayList<>(sessions.size());
+        for (RecentPrivateChatSession session : sessions) {
+            if (session.getLastMessage() == null) {
+                continue;
+            }
+            ChatRecentPrivateSessionVO vo = new ChatRecentPrivateSessionVO();
+            vo.setPeerId(session.getPeerId());
+
+            ChatHistoryMessageVO messageVO = new ChatHistoryMessageVO();
+            BeanUtils.copyProperties(session.getLastMessage(), messageVO);
+            vo.setLastMessage(messageVO);
+            result.add(vo);
+        }
+
         return Result.success(result);
     }
 
