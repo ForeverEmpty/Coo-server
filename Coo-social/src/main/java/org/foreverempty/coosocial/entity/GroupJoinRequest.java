@@ -8,16 +8,18 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("u_group")
-public class Group {
+@TableName("u_group_join_request")
+public class GroupJoinRequest {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-    private String name;
-    private Long ownerId;
-    private String avatar;
-    private String notice;
-    private Integer inviteAuditMode;
-    private Long defaultTitleId;
+    private Long groupId;
+    private String type;
+    private Long fromUserId;
+    private Long targetUserId;
+    private String status;
+    private Long auditBy;
+    private String reason;
+    private LocalDateTime expireTime;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

@@ -13,7 +13,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "chat_message")
 @CompoundIndexes({
         @CompoundIndex(name = "idx_from_to_ts", def = "{'fromId':1,'toId':1,'timestamp':-1}"),
-        @CompoundIndex(name = "idx_to_from_ts", def = "{'toId':1,'fromId':1,'timestamp':-1}")
+        @CompoundIndex(name = "idx_to_from_ts", def = "{'toId':1,'fromId':1,'timestamp':-1}"),
+        @CompoundIndex(name = "idx_group_ts", def = "{'chatType':1,'toId':1,'timestamp':-1}")
 })
 public class ChatMessage {
     @Id

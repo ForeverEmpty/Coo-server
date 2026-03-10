@@ -32,6 +32,7 @@ import org.foreverempty.coosocial.mapper.FriendMapper;
 import org.foreverempty.coosocial.vo.ChatSessionConfigVO;
 import org.foreverempty.coosocial.vo.FriendApplyVO;
 import org.foreverempty.coosocial.vo.FriendGroupVO;
+import org.foreverempty.coosocial.vo.MutualFriendListVO;
 import org.foreverempty.coosocial.vo.FriendVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,8 @@ import java.util.stream.Collectors;
 @Service
 public class FriendService {
     private static final int MAX_CHAT_ID_LIST_SIZE = 1000;
+    private static final int DEFAULT_MUTUAL_LIMIT = 6;
+    private static final int MAX_MUTUAL_LIMIT = 20;
 
     @Autowired
     private FriendMapper friendMapper;
@@ -506,6 +509,62 @@ public class FriendService {
         return Result.success(vo);
     }
 
+    public Result<MutualFriendListVO> getMutualFriends(Long targetUserId, Integer limit) {
+        Long currentUserId = UserContext.getUserId();
+        if (targetUserId == null || Objects.equals(currentUserId, targetUserId)) {
+            return Result.success(emptyMutualFriendList());
+        }
+
+        int safeLimit = limit == null ? DEFAULT_MUTUAL_LIMIT : limit;
+        safeLimit = Math.max(1, Math.min(MAX_MUTUAL_LIMIT, safeLimit));
+
+        Result<UserFullVO> targetResult = userFeignClient.getUserInfo(targetUserId);
+        UserFullVO targetInfo = targetResult == null ? null : targetResult.getData();
+        if (targetResult == null
+                || targetResult.getCode() != 200
+                || targetInfo == null
+                || !Boolean.TRUE.equals(targetInfo.getPublicMutualFriend())) {
+            return Result.success(emptyMutualFriendList());
+        }
+
+        Long total = friendMapper.countMutualFriendIds(
+                currentUserId,
+                targetUserId,
+                FriendStatus.NORMAL.getCode());
+        if (total == null || total <= 0) {
+            return Result.success(emptyMutualFriendList());
+        }
+
+        List<Long> mutualIds = friendMapper.selectMutualFriendIds(
+                currentUserId,
+                targetUserId,
+                FriendStatus.NORMAL.getCode(),
+                safeLimit);
+
+        List<UserSimpleVO> users = Collections.emptyList();
+        if (mutualIds != null && !mutualIds.isEmpty()) {
+            try {
+                Result<List<UserSimpleVO>> batchResult = userFeignClient.getUserBatch(mutualIds);
+                if (batchResult != null && batchResult.getCode() == 200 && batchResult.getData() != null) {
+                    Map<Long, UserSimpleVO> userMap = batchResult.getData().stream()
+                            .collect(Collectors.toMap(UserSimpleVO::getId, item -> item, (a, b) -> a));
+                    users = mutualIds.stream()
+                            .map(userMap::get)
+                            .filter(Objects::nonNull)
+                            .toList();
+                }
+            } catch (Exception e) {
+                log.error("Get mutual friend details failed, currentUserId={}, targetUserId={}",
+                        currentUserId, targetUserId, e);
+            }
+        }
+
+        MutualFriendListVO vo = new MutualFriendListVO();
+        vo.setTotal(total);
+        vo.setList(users);
+        return Result.success(vo);
+    }
+
     private List<FriendVO> getFriendListInternal(Long userId) {
         List<Friend> relations = friendMapper.selectList(
                 new LambdaQueryWrapper<Friend>()
@@ -754,5 +813,12 @@ public class FriendService {
             }
         }
         return new ArrayList<>(normalized);
+    }
+
+    private MutualFriendListVO emptyMutualFriendList() {
+        MutualFriendListVO vo = new MutualFriendListVO();
+        vo.setTotal(0L);
+        vo.setList(Collections.emptyList());
+        return vo;
     }
 }

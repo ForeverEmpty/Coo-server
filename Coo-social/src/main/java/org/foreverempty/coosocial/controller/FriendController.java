@@ -15,6 +15,7 @@ import org.foreverempty.coosocial.service.FriendService;
 import org.foreverempty.coosocial.vo.FriendApplyVO;
 import org.foreverempty.coosocial.vo.FriendGroupVO;
 import org.foreverempty.coosocial.vo.ChatSessionConfigVO;
+import org.foreverempty.coosocial.vo.MutualFriendListVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,12 @@ public class FriendController {
     @GetMapping("/info/{id}")
     public Result<UserFullVO> getFriendInfo(@PathVariable Long id) {
         return friendService.getFriendInfo(id);
+    }
+
+    @GetMapping("/mutual/{targetId}")
+    public Result<MutualFriendListVO> getMutualFriends(@PathVariable Long targetId,
+            @RequestParam(defaultValue = "6") Integer limit) {
+        return friendService.getMutualFriends(targetId, limit);
     }
 
     @GetMapping("/search")

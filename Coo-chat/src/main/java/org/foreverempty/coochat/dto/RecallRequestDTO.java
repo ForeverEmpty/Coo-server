@@ -1,5 +1,8 @@
 package org.foreverempty.coochat.dto;
 
+import lombok.Data;
+
+@Data
 public class RecallRequestDTO {
-    private String messageId; // 要撤回的消息唯一ID
+    private String messageId;
 }

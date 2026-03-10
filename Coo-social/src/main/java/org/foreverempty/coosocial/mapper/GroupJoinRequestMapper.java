@@ -2,8 +2,8 @@
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import org.foreverempty.coosocial.entity.Group;
+import org.foreverempty.coosocial.entity.GroupJoinRequest;
 
 @Mapper
-public interface GroupMapper extends BaseMapper<Group> {
+public interface GroupJoinRequestMapper extends BaseMapper<GroupJoinRequest> {
 }
