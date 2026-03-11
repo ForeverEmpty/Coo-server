@@ -17,16 +17,16 @@ spring:
                 - Path=/api/auth/** # 凡是 /api/auth/ 开头的请求都发给 chat-auth
               filters:
                 - StripPrefix=2
-            - id: file_route
-              uri: lb://Coo-file
-              predicates:
-                - Path=/api/file/**
-              filters:
-                - StripPrefix=2
             - id: chat_history_route
               uri: lb://Coo-chat
               predicates:
                 - Path=/api/chat/history/**
+              filters:
+                - StripPrefix=2
+            - id: chat_attachment_route
+              uri: lb://Coo-chat
+              predicates:
+                - Path=/api/chat/attachment/**
               filters:
                 - StripPrefix=2
             - id: chat_ws_route

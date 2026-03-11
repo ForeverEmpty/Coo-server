@@ -6,6 +6,7 @@ import lombok.Data;
 public class GroupUpdateDTO {
     private String name;
     private String avatar;
+    private String coverUrl;
     private String notice;
     private Integer inviteAuditMode;
 }

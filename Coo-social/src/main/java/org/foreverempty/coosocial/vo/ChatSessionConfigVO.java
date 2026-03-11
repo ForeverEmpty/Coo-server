@@ -8,4 +8,5 @@ import java.util.List;
 public class ChatSessionConfigVO {
     private List<String> pinnedChatIds;
     private List<String> hiddenRecentChatIds;
+    private List<String> mutedChatIds;
 }

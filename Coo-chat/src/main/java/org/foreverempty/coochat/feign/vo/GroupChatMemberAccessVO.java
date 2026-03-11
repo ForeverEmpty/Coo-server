@@ -2,10 +2,13 @@ package org.foreverempty.coochat.feign.vo;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class GroupChatMemberAccessVO {
     private Long groupId;
     private Long userId;
     private Boolean member;
-    private Integer role;
+    private List<String> permissions;
+    private Boolean recallAnytime;
 }

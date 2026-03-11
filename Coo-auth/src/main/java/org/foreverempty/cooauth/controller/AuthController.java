@@ -9,6 +9,7 @@ import org.foreverempty.cooauth.service.AuthService;
 import org.foreverempty.common.vo.UserFullVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,11 @@ public class AuthController {
     @PostMapping("/background/update")
     public Result<String> updateBackground(@RequestBody Map<String, String> params) {
         return authService.updateBackground(params.get("background"));
+    }
+
+    @PostMapping("/file/upload")
+    public Result<String> uploadProfileFile(@RequestParam("file") MultipartFile file) {
+        return authService.uploadProfileFile(file);
     }
 
     @PostMapping("/privacy/update")

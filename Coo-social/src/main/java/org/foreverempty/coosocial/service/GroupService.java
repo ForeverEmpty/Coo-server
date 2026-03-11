@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class GroupService {
+    private static final int DEFAULT_GROUP_FILE_CAPACITY_MB = 1024;
+    private static final int DEFAULT_GROUP_FILE_OVERSIZE_THRESHOLD_MB = 100;
+    private static final int DEFAULT_GROUP_FILE_TEMP_EXPIRE_DAYS = 7;
 
     private static final List<String> OWNER_PERMISSIONS = Arrays.stream(GroupPermission.values())
             .map(Enum::name)
@@ -92,7 +95,9 @@ public class GroupService {
                     GroupListVO vo = new GroupListVO();
                     vo.setId(group.getId());
                     vo.setName(group.getName());
+                    vo.setOwnerId(group.getOwnerId());
                     vo.setAvatar(group.getAvatar());
+                    vo.setCoverUrl(group.getCoverUrl());
                     vo.setNotice(group.getNotice());
                     vo.setRemark(member != null ? member.getRemark() : null);
                     vo.setMemberCount(Math.toIntExact(memberCountMap.getOrDefault(group.getId(), 0L)));
@@ -150,6 +155,7 @@ public class GroupService {
             vo.setId(group.getId());
             vo.setName(group.getName());
             vo.setAvatar(group.getAvatar());
+            vo.setCoverUrl(group.getCoverUrl());
             vo.setNotice(group.getNotice());
             vo.setMemberCount(Math.toIntExact(memberCountMap.getOrDefault(group.getId(), 0L)));
             vo.setJoined(joinedIds.contains(group.getId()));
@@ -170,8 +176,13 @@ public class GroupService {
         group.setName(dto.getName().trim());
         group.setOwnerId(currentUserId);
         group.setAvatar(trimToNull(dto.getAvatar()));
+        group.setCoverUrl(trimToNull(dto.getCoverUrl()));
         group.setNotice(trimToNull(dto.getNotice()));
         group.setInviteAuditMode(normalizeInviteAuditMode(dto.getInviteAuditMode()));
+        group.setFileCapacityMb(DEFAULT_GROUP_FILE_CAPACITY_MB);
+        group.setOversizeThresholdMb(DEFAULT_GROUP_FILE_OVERSIZE_THRESHOLD_MB);
+        group.setTempExpireDays(DEFAULT_GROUP_FILE_TEMP_EXPIRE_DAYS);
+        group.setUsedStorageBytes(0L);
         group.setCreateTime(LocalDateTime.now());
         group.setUpdateTime(LocalDateTime.now());
         groupMapper.insert(group);
@@ -181,7 +192,11 @@ public class GroupService {
         defaultTitle.setName("成员");
         defaultTitle.setIsDefault(1);
         defaultTitle.setSort(0);
-        defaultTitle.setPermissions(writePermissions(List.of(GroupPermission.GROUP_VIEW.name())));
+        defaultTitle.setPermissions(writePermissions(List.of(
+                GroupPermission.GROUP_VIEW.name(),
+                GroupPermission.GROUP_FILE_VIEW.name(),
+                GroupPermission.GROUP_FILE_UPLOAD.name()
+        )));
         defaultTitle.setCreateTime(LocalDateTime.now());
         defaultTitle.setUpdateTime(LocalDateTime.now());
         groupTitleMapper.insert(defaultTitle);
@@ -225,6 +240,7 @@ public class GroupService {
         vo.setId(group.getId());
         vo.setName(group.getName());
         vo.setAvatar(group.getAvatar());
+        vo.setCoverUrl(group.getCoverUrl());
         vo.setNotice(group.getNotice());
         vo.setRemark(currentMember.getRemark());
         vo.setOwnerId(group.getOwnerId());
@@ -236,6 +252,10 @@ public class GroupService {
         vo.setMyTitleName(title != null ? title.getName() : null);
         vo.setMyNicknameInGroup(currentMember.getNicknameInGroup());
         vo.setMyPermissions(resolvePermissions(currentMember, title));
+        vo.setFileCapacityMb(group.getFileCapacityMb());
+        vo.setOversizeThresholdMb(group.getOversizeThresholdMb());
+        vo.setTempExpireDays(group.getTempExpireDays());
+        vo.setUsedStorageBytes(group.getUsedStorageBytes());
         return Result.success(vo);
     }
 
@@ -254,7 +274,7 @@ public class GroupService {
             return Result.error("Invalid payload");
         }
 
-        if (dto.getName() != null || dto.getAvatar() != null || dto.getInviteAuditMode() != null) {
+        if (dto.getName() != null || dto.getAvatar() != null || dto.getCoverUrl() != null || dto.getInviteAuditMode() != null) {
             if (!hasPermission(currentMember, GroupPermission.GROUP_EDIT_INFO)) {
                 return Result.error("No permission to edit group info");
             }
@@ -272,6 +292,9 @@ public class GroupService {
         }
         if (dto.getAvatar() != null) {
             group.setAvatar(trimToNull(dto.getAvatar()));
+        }
+        if (dto.getCoverUrl() != null) {
+            group.setCoverUrl(trimToNull(dto.getCoverUrl()));
         }
         if (dto.getNotice() != null) {
             group.setNotice(trimToNull(dto.getNotice()));
@@ -365,36 +388,6 @@ public class GroupService {
         targetMember.setUpdateTime(LocalDateTime.now());
         groupMemberMapper.updateById(targetMember);
         return Result.success("Member title updated");
-    }
-
-    @Transactional
-    public Result<String> updateMemberRole(Long groupId, Long userId, GroupMemberRoleDTO dto) {
-        Long currentUserId = UserContext.getUserId();
-        GroupMember currentMember = getRequiredMember(groupId, currentUserId);
-        if (!hasPermission(currentMember, GroupPermission.GROUP_SET_SUPER_ADMIN)) {
-            return Result.error("No permission");
-        }
-        GroupMember targetMember = getRequiredMember(groupId, userId);
-        if (targetMember == null) {
-            return Result.error("Member not found");
-        }
-        if (GroupMemberRole.fromCode(targetMember.getRole()) == GroupMemberRole.OWNER) {
-            return Result.error("Cannot update owner role");
-        }
-        GroupMemberRole targetRole = GroupMemberRole.fromCode(dto != null ? dto.getRole() : null);
-        if (targetRole == GroupMemberRole.OWNER) {
-            return Result.error("Cannot set owner role here");
-        }
-        targetMember.setRole(targetRole.getCode());
-        if (targetRole == GroupMemberRole.SUPER_ADMIN) {
-            targetMember.setTitleId(null);
-        } else if (targetMember.getTitleId() == null) {
-            Group group = groupMapper.selectById(groupId);
-            targetMember.setTitleId(group != null ? group.getDefaultTitleId() : null);
-        }
-        targetMember.setUpdateTime(LocalDateTime.now());
-        groupMemberMapper.updateById(targetMember);
-        return Result.success("Member role updated");
     }
 
     @Transactional
@@ -541,7 +534,15 @@ public class GroupService {
         vo.setGroupId(groupId);
         vo.setUserId(userId);
         vo.setMember(member != null);
-        vo.setRole(member != null ? member.getRole() : null);
+        if (member == null) {
+            vo.setPermissions(Collections.emptyList());
+            vo.setRecallAnytime(false);
+            return Result.success(vo);
+        }
+        GroupTitle title = member.getTitleId() != null ? groupTitleMapper.selectById(member.getTitleId()) : null;
+        List<String> permissions = resolvePermissions(member, title);
+        vo.setPermissions(permissions);
+        vo.setRecallAnytime(permissions.contains(GroupPermission.GROUP_RECALL_ANYTIME.name()));
         return Result.success(vo);
     }
 

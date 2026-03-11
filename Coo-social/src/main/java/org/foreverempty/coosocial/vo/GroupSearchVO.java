@@ -7,6 +7,7 @@ public class GroupSearchVO {
     private Long id;
     private String name;
     private String avatar;
+    private String coverUrl;
     private String notice;
     private Integer memberCount;
     private Boolean joined;

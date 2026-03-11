@@ -410,7 +410,11 @@ public class FriendService {
                 new LambdaQueryWrapper<Friend>()
                         .eq(Friend::getUserId, currentUserId)
                         .eq(Friend::getFriendId, dto.getFriendId())
-                        .in(Friend::getStatus, FriendStatus.NORMAL.getCode(), FriendStatus.ONE_WAY.getCode()));
+                        .in(
+                                Friend::getStatus,
+                                FriendStatus.NORMAL.getCode(),
+                                FriendStatus.ONE_WAY.getCode(),
+                                FriendStatus.BLOCKED.getCode()));
 
         if (relation == null) {
             return Result.error("Friend relation not found");
@@ -423,6 +427,17 @@ public class FriendService {
         if (dto.getGroupId() != null) {
             Long normalizedGroupId = normalizeGroupId(dto.getGroupId());
             relation.setGroupId(normalizedGroupId == null ? 0L : normalizedGroupId);
+        }
+
+        if (dto.getStatus() != null) {
+            FriendStatus nextStatus = FriendStatus.fromCode(dto.getStatus());
+            if (nextStatus == null) {
+                return Result.error("Invalid status");
+            }
+            if (nextStatus != FriendStatus.NORMAL && nextStatus != FriendStatus.BLOCKED) {
+                return Result.error("Only NORMAL or BLOCKED is supported");
+            }
+            relation.setStatus(nextStatus.getCode());
         }
 
         friendMapper.updateById(relation);
@@ -441,11 +456,13 @@ public class FriendService {
         if (config == null) {
             vo.setPinnedChatIds(Collections.emptyList());
             vo.setHiddenRecentChatIds(Collections.emptyList());
+            vo.setMutedChatIds(Collections.emptyList());
             return Result.success(vo);
         }
 
         vo.setPinnedChatIds(parseChatIdList(config.getPinnedChatIds()));
         vo.setHiddenRecentChatIds(parseChatIdList(config.getHiddenRecentChatIds()));
+        vo.setMutedChatIds(parseChatIdList(config.getMutedChatIds()));
         return Result.success(vo);
     }
 
@@ -455,12 +472,15 @@ public class FriendService {
 
         List<String> pinnedChatIds = sanitizeChatIdList(dto == null ? null : dto.getPinnedChatIds());
         List<String> hiddenRecentChatIds = sanitizeChatIdList(dto == null ? null : dto.getHiddenRecentChatIds());
+        List<String> mutedChatIds = sanitizeChatIdList(dto == null ? null : dto.getMutedChatIds());
 
         String pinnedJson;
         String hiddenJson;
+        String mutedJson;
         try {
             pinnedJson = objectMapper.writeValueAsString(pinnedChatIds);
             hiddenJson = objectMapper.writeValueAsString(hiddenRecentChatIds);
+            mutedJson = objectMapper.writeValueAsString(mutedChatIds);
         } catch (Exception e) {
             log.error("Serialize chat session config failed, userId={}", currentUserId, e);
             return Result.error("Save chat session config failed");
@@ -476,12 +496,14 @@ public class FriendService {
             insert.setUserId(currentUserId);
             insert.setPinnedChatIds(pinnedJson);
             insert.setHiddenRecentChatIds(hiddenJson);
+            insert.setMutedChatIds(mutedJson);
             chatSessionConfigMapper.insert(insert);
             return Result.success("Chat session config saved");
         }
 
         config.setPinnedChatIds(pinnedJson);
         config.setHiddenRecentChatIds(hiddenJson);
+        config.setMutedChatIds(mutedJson);
         chatSessionConfigMapper.updateById(config);
         return Result.success("Chat session config saved");
     }
@@ -569,7 +591,11 @@ public class FriendService {
         List<Friend> relations = friendMapper.selectList(
                 new LambdaQueryWrapper<Friend>()
                         .eq(Friend::getUserId, userId)
-                        .in(Friend::getStatus, FriendStatus.NORMAL.getCode(), FriendStatus.ONE_WAY.getCode()));
+                        .in(
+                                Friend::getStatus,
+                                FriendStatus.NORMAL.getCode(),
+                                FriendStatus.ONE_WAY.getCode(),
+                                FriendStatus.BLOCKED.getCode()));
 
         if (relations == null || relations.isEmpty()) {
             return Collections.emptyList();

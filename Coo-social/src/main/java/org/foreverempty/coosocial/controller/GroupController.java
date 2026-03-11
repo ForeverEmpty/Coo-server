@@ -6,7 +6,6 @@ import org.foreverempty.coosocial.dto.GroupCreateDTO;
 import org.foreverempty.coosocial.dto.GroupInviteDTO;
 import org.foreverempty.coosocial.dto.GroupJoinAuditDTO;
 import org.foreverempty.coosocial.dto.GroupMemberNicknameDTO;
-import org.foreverempty.coosocial.dto.GroupMemberRoleDTO;
 import org.foreverempty.coosocial.dto.GroupMemberTitleDTO;
 import org.foreverempty.coosocial.dto.GroupRemarkDTO;
 import org.foreverempty.coosocial.dto.GroupTitleCreateDTO;
@@ -73,13 +72,6 @@ public class GroupController {
                                             @PathVariable Long userId,
                                             @RequestBody GroupMemberTitleDTO dto) {
         return groupService.updateMemberTitle(groupId, userId, dto);
-    }
-
-    @PutMapping("/{groupId}/member/{userId}/role")
-    public Result<String> updateMemberRole(@PathVariable Long groupId,
-                                           @PathVariable Long userId,
-                                           @RequestBody GroupMemberRoleDTO dto) {
-        return groupService.updateMemberRole(groupId, userId, dto);
     }
 
     @DeleteMapping("/{groupId}/member/{userId}")

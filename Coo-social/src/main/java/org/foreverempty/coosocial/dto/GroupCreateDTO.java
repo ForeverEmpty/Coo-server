@@ -8,6 +8,7 @@ import java.util.List;
 public class GroupCreateDTO {
     private String name;
     private String avatar;
+    private String coverUrl;
     private String notice;
     private Integer inviteAuditMode;
     private List<Long> initialMemberIds;

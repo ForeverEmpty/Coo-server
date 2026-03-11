@@ -9,6 +9,7 @@ public class GroupInfoVO {
     private Long id;
     private String name;
     private String avatar;
+    private String coverUrl;
     private String notice;
     private String remark;
     private Long ownerId;
@@ -20,4 +21,8 @@ public class GroupInfoVO {
     private String myTitleName;
     private String myNicknameInGroup;
     private List<String> myPermissions;
+    private Integer fileCapacityMb;
+    private Integer oversizeThresholdMb;
+    private Integer tempExpireDays;
+    private Long usedStorageBytes;
 }

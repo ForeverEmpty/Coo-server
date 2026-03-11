@@ -7,4 +7,5 @@ public class FriendRelationUpdateDTO {
     private Long friendId;
     private String remark;
     private Long groupId;
+    private Integer status;
 }

@@ -16,6 +16,7 @@ import org.foreverempty.cooauth.entity.User;
 import org.foreverempty.cooauth.entity.UserInfo;
 import org.foreverempty.cooauth.es.document.UserDoc;
 import org.foreverempty.cooauth.es.repository.UserSearchRepository;
+import org.foreverempty.cooauth.feign.FileUploadFeignClient;
 import org.foreverempty.cooauth.mapper.UserInfoMapper;
 import org.foreverempty.cooauth.mapper.UserMapper;
 import org.foreverempty.common.vo.UserFullVO;
@@ -27,15 +28,35 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class AuthService {
+    private static final long MAX_PROFILE_UPLOAD_BYTES = 20L * 1024L * 1024L;
+    private static final Set<String> ALLOWED_PROFILE_CONTENT_TYPES = Set.of(
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "image/bmp"
+    );
+    private static final Set<String> ALLOWED_PROFILE_EXTENSIONS = Set.of(
+            "jpg",
+            "jpeg",
+            "png",
+            "webp",
+            "gif",
+            "bmp"
+    );
+
     @Autowired
     private UserMapper userMapper;
 
@@ -44,6 +65,8 @@ public class AuthService {
 
     @Autowired
     private UserSearchRepository userSearchRepository;
+    @Autowired
+    private FileUploadFeignClient fileUploadFeignClient;
 
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
@@ -160,6 +183,30 @@ public class AuthService {
 
         log.info("User {} Update Background: {}", userId, url);
         return Result.success("Update Background succeed");
+    }
+
+    public Result<String> uploadProfileFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return Result.error("File is required");
+        }
+        if (file.getSize() > MAX_PROFILE_UPLOAD_BYTES) {
+            return Result.error("File size exceeds 20MB");
+        }
+        String contentType = file.getContentType();
+        if (!org.springframework.util.StringUtils.hasText(contentType)
+                || !ALLOWED_PROFILE_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
+            return Result.error("Only image files are allowed");
+        }
+        String extension = extractExtension(file.getOriginalFilename());
+        if (!ALLOWED_PROFILE_EXTENSIONS.contains(extension)) {
+            return Result.error("Unsupported image format");
+        }
+
+        Result<String> result = fileUploadFeignClient.upload(file);
+        if (result == null || !org.springframework.util.StringUtils.hasText(result.getData())) {
+            return Result.error("Upload failed");
+        }
+        return Result.success(result.getData());
     }
 
     @Transactional
@@ -293,5 +340,16 @@ public class AuthService {
                 doc.getUsername(),
                 doc.getNickname(),
                 doc.getAvatar());
+    }
+
+    private String extractExtension(String fileName) {
+        if (!org.springframework.util.StringUtils.hasText(fileName)) {
+            return "";
+        }
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex < 0 || dotIndex == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
     }
 }

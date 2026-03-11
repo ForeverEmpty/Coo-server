@@ -8,14 +8,16 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("u_chat_session_config")
-public class ChatSessionConfig {
-    @TableId(type = IdType.AUTO)
+@TableName("u_group_file_folder")
+public class GroupFileFolder {
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
-    private Long userId;
-    private String pinnedChatIds;
-    private String hiddenRecentChatIds;
-    private String mutedChatIds;
+    private Long groupId;
+    private Long parentId;
+    private String name;
+    private Long createBy;
+    private Integer deleted;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }
+

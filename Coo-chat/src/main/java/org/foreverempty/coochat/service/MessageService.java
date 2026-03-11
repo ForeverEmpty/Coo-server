@@ -108,7 +108,7 @@ public class MessageService {
         }
 
         Long cursor = parseCursor(queryDTO != null ? queryDTO.getCursor() : null);
-        if (cursor == Long.MIN_VALUE) {
+        if (Objects.equals(cursor, Long.MIN_VALUE)) {
             return Result.error("Invalid cursor");
         }
 
@@ -132,7 +132,7 @@ public class MessageService {
         }
 
         Long cursor = parseCursor(queryDTO != null ? queryDTO.getCursor() : null);
-        if (cursor == Long.MIN_VALUE) {
+        if (Objects.equals(cursor, Long.MIN_VALUE)) {
             return Result.error("Invalid cursor");
         }
 
@@ -198,7 +198,7 @@ public class MessageService {
         }
 
         Long cursor = parseCursor(queryDTO != null ? queryDTO.getCursor() : null);
-        if (cursor == Long.MIN_VALUE) {
+        if (Objects.equals(cursor, Long.MIN_VALUE)) {
             return Result.error("Invalid cursor");
         }
 
@@ -231,8 +231,18 @@ public class MessageService {
 
         String operatorId = String.valueOf(currentUserId);
         boolean operatorIsSender = operatorId.equals(message.getFromId());
+        boolean recallAnytime = false;
         if (groupChat) {
-            if (!canRecallGroupMessage(message, currentUserId)) {
+            Long groupId = parseLong(message.getToId());
+            if (groupId == null) {
+                return Result.error("Invalid group id");
+            }
+            GroupChatMemberAccessVO groupAccess = getGroupMemberAccess(groupId, currentUserId);
+            if (groupAccess == null || !Boolean.TRUE.equals(groupAccess.getMember())) {
+                return Result.error("No permission to recall this message");
+            }
+            recallAnytime = Boolean.TRUE.equals(groupAccess.getRecallAnytime());
+            if (!operatorIsSender && !recallAnytime) {
                 return Result.error("No permission to recall this message");
             }
         } else if (!operatorIsSender) {
@@ -245,8 +255,8 @@ public class MessageService {
 
         long messageTimestamp = message.getTimestamp() == null ? 0L : message.getTimestamp();
         if (groupChat) {
-            // Group sender recall is time-limited; owner/super-admin recalling others is not.
-            if (operatorIsSender && (messageTimestamp <= 0L || System.currentTimeMillis() - messageTimestamp > GROUP_RECALL_WINDOW_MS)) {
+            if (!recallAnytime && operatorIsSender
+                    && (messageTimestamp <= 0L || System.currentTimeMillis() - messageTimestamp > GROUP_RECALL_WINDOW_MS)) {
                 return Result.error("Recall time window exceeded");
             }
         } else if (messageTimestamp <= 0L || System.currentTimeMillis() - messageTimestamp > PRIVATE_RECALL_WINDOW_MS) {
@@ -335,25 +345,6 @@ public class MessageService {
     private boolean isGroupMember(Long groupId, Long userId) {
         GroupChatMemberAccessVO access = getGroupMemberAccess(groupId, userId);
         return access != null && Boolean.TRUE.equals(access.getMember());
-    }
-
-    private boolean canRecallGroupMessage(ChatMessage message, Long currentUserId) {
-        if (message == null || currentUserId == null) {
-            return false;
-        }
-        if (String.valueOf(currentUserId).equals(message.getFromId())) {
-            return true;
-        }
-        Long groupId = parseLong(message.getToId());
-        if (groupId == null) {
-            return false;
-        }
-        GroupChatMemberAccessVO access = getGroupMemberAccess(groupId, currentUserId);
-        if (access == null || !Boolean.TRUE.equals(access.getMember())) {
-            return false;
-        }
-        Integer role = access.getRole();
-        return Objects.equals(role, 1) || Objects.equals(role, 2);
     }
 
     private GroupChatMemberAccessVO getGroupMemberAccess(Long groupId, Long userId) {
