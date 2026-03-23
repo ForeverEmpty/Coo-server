@@ -13,6 +13,7 @@ public class GroupTitle {
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
     private Long groupId;
+    private String systemKey;
     private String name;
     private Integer isDefault;
     private Integer sort;

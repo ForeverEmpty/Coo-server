@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 public class GroupTitleVO {
     private Long id;
+    private String systemKey;
     private String name;
     private Boolean isDefault;
     private Integer sort;

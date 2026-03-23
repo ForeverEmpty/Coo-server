@@ -114,7 +114,7 @@ public class MessageRepositoryImpl implements MessageRepositoryCustom {
     public List<ChatMessage> queryGroupHistory(String groupId, Long cursor, int limit) {
         List<Criteria> criteriaList = new ArrayList<>();
         criteriaList.add(Criteria.where("chatType").is(2));
-        criteriaList.add(Criteria.where("toId").is(groupId));
+        criteriaList.add(buildGroupTargetCriteria(groupId));
 
         if (cursor != null) {
             criteriaList.add(Criteria.where("timestamp").lt(cursor));
@@ -130,7 +130,7 @@ public class MessageRepositoryImpl implements MessageRepositoryCustom {
     public List<ChatMessage> queryGroupSharedMessages(String groupId, Integer contentType, Long cursor, int limit) {
         List<Criteria> criteriaList = new ArrayList<>();
         criteriaList.add(Criteria.where("chatType").is(2));
-        criteriaList.add(Criteria.where("toId").is(groupId));
+        criteriaList.add(buildGroupTargetCriteria(groupId));
         criteriaList.add(Criteria.where("contentType").is(contentType));
         criteriaList.add(Criteria.where("status").ne(1));
         criteriaList.add(Criteria.where("url").ne(null));
@@ -143,6 +143,21 @@ public class MessageRepositoryImpl implements MessageRepositoryCustom {
                 .with(Sort.by(Sort.Direction.DESC, "timestamp"))
                 .limit(limit);
         return findChatMessagesSafely(query);
+    }
+
+    private Criteria buildGroupTargetCriteria(String groupId) {
+        if (!org.springframework.util.StringUtils.hasText(groupId)) {
+            return Criteria.where("toId").is(groupId);
+        }
+        List<Criteria> criteriaList = new ArrayList<>();
+        criteriaList.add(Criteria.where("toId").is(groupId));
+        criteriaList.add(Criteria.where("toId").is("group_" + groupId));
+        try {
+            criteriaList.add(Criteria.where("toId").is(Long.parseLong(groupId)));
+        } catch (NumberFormatException ignored) {
+            // groupId is expected to be numeric, keep string compatible query only.
+        }
+        return new Criteria().orOperator(criteriaList.toArray(new Criteria[0]));
     }
 
     private List<ChatMessage> findChatMessagesSafely(Query query) {

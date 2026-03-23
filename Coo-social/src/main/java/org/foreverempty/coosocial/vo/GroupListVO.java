@@ -12,7 +12,6 @@ public class GroupListVO {
     private String notice;
     private String remark;
     private Integer memberCount;
-    private Integer myRole;
     private Long myTitleId;
     private String myTitleName;
     private String myNicknameInGroup;

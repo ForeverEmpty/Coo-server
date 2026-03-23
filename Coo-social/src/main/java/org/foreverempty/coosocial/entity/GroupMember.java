@@ -16,7 +16,6 @@ public class GroupMember {
     private Long userId;
     private String remark;
     private String nicknameInGroup;
-    private Integer role;
     private Long titleId;
     private LocalDateTime muteUntil;
     private LocalDateTime createTime;

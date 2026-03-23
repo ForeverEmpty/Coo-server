@@ -14,6 +14,5 @@ public class GroupMemberVO {
     private String nicknameInGroup;
     private Long titleId;
     private String titleName;
-    private Integer role;
     private List<String> permissions;
 }

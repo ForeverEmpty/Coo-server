@@ -9,6 +9,7 @@ import org.foreverempty.coosocial.dto.GroupMemberNicknameDTO;
 import org.foreverempty.coosocial.dto.GroupMemberTitleDTO;
 import org.foreverempty.coosocial.dto.GroupRemarkDTO;
 import org.foreverempty.coosocial.dto.GroupTitleCreateDTO;
+import org.foreverempty.coosocial.dto.GroupTitleSortDTO;
 import org.foreverempty.coosocial.dto.GroupTitleUpdateDTO;
 import org.foreverempty.coosocial.dto.GroupTransferOwnerDTO;
 import org.foreverempty.coosocial.dto.GroupUpdateDTO;
@@ -128,6 +129,11 @@ public class GroupController {
     @PutMapping("/{groupId}/titles/{titleId}/default")
     public Result<String> setDefaultTitle(@PathVariable Long groupId, @PathVariable Long titleId) {
         return groupService.setDefaultTitle(groupId, titleId);
+    }
+
+    @PutMapping("/{groupId}/titles/sort")
+    public Result<String> sortTitles(@PathVariable Long groupId, @RequestBody GroupTitleSortDTO dto) {
+        return groupService.sortTitles(groupId, dto);
     }
 
     @DeleteMapping("/{groupId}/titles/{titleId}")

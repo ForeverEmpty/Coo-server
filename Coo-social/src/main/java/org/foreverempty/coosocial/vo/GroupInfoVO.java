@@ -16,7 +16,6 @@ public class GroupInfoVO {
     private Integer inviteAuditMode;
     private Long defaultTitleId;
     private Integer memberCount;
-    private Integer myRole;
     private Long myTitleId;
     private String myTitleName;
     private String myNicknameInGroup;
